@@ -1,0 +1,33 @@
+﻿# node / frontend
+node_modules/
+dist/
+.angular/
+*.log
+
+# java / maven / gradle
+target/
+.mvn/wrapper/maven-wrapper.jar
+*.class
+*.jar
+*.war
+*.ear
+.idea/
+*.iml
+.vscode/
+*.swp
+
+# env / secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.p12
+*.jks
+
+# os
+.DS_Store
+Thumbs.db
+
+# docker volumes / local data
+data/
+postgres-data/
