@@ -9,8 +9,8 @@
     @if (health(); as h) {
       <p><strong>API:</strong> {{ h.status }} · {{ h.service }} · modo {{ h.mode }}</p>
       <p class="muted">{{ h.timestamp }}</p>
-    } @else if (error(); as err) {
-      <p class="warn">{{ err }}</p>
+    } @else if (error()) {
+      <p class="warn">{{ error() }}</p>
     } @else {
       <p class="muted">Checando API…</p>
     }
