@@ -1,0 +1,18 @@
+<main class="shell">
+  <header>
+    <p class="eyebrow">Bomfimdev</p>
+    <h1>{{ title }}</h1>
+    <p class="lead">Apuração em tempo real com dados públicos do TSE — stack Java / Angular.</p>
+  </header>
+
+  <section class="status" aria-live="polite">
+    @if (health(); as h) {
+      <p><strong>API:</strong> {{ h.status }} · {{ h.service }} · modo {{ h.mode }}</p>
+      <p class="muted">{{ h.timestamp }}</p>
+    } @else if (error(); as err) {
+      <p class="warn">{{ err }}</p>
+    } @else {
+      <p class="muted">Checando API…</p>
+    }
+  </section>
+</main>

@@ -1,0 +1,35 @@
+---
+description: Contexto permanente do fork Eleições Brasil em Java/Angular
+alwaysApply: true
+---
+
+# Eleições Brasil — Java / Angular
+
+Este repo é a adaptação do projeto TypeScript `lucianookdp/eleicoes-brasil` para a stack do Gabriel Bomfim: **Spring Boot + Angular + PostgreSQL + SSE + Docker**.
+
+## Contexto obrigatório
+
+- Ler `AGENTS.md` e `docs/PLANO.md` antes de implementar.
+- Referência do original (somente leitura / espelho de domínio): `D:\Eleicoes_2026`
+- Repo remoto: `https://github.com/Bomfimdev/eleicoes-brasil-java`
+
+## Regras de arquitetura
+
+- Browser nunca acessa o TSE; só o collector.
+- Adapter TSE é o único lugar com campos brutos (`cdabr`, `pvapn`, etc.).
+- Domínio sem ano no nome de tabela/componente.
+- `null` para dado indisponível; nunca inventar voto/percentual.
+- Em erro do TSE, manter último estado bom.
+
+## Stack e estilo
+
+- Java 17, Spring Boot 3, Spring Data JPA, Flyway, PostgreSQL.
+- Angular SPA mobile-first.
+- SSE para tempo real (não WebSocket no MVP).
+- springdoc-openapi / Swagger na API.
+- Respostas ao usuário em português, objetivas.
+- Não commitar sem pedido explícito do usuário.
+
+## Ordem de trabalho
+
+Seguir fases em `docs/PLANO.md`. Não pular para mapa/histórico/TSE real antes de health + schema + API básica + tela Angular mínima.

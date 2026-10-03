@@ -1,0 +1,10 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/eleicoes
+    username: eleicoes
+    password: eleicoes
+  jpa:
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true

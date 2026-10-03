@@ -6,6 +6,7 @@ dist/
 
 # java / maven / gradle
 target/
+backend/target/
 .mvn/wrapper/maven-wrapper.jar
 *.class
 *.jar
@@ -13,8 +14,12 @@ target/
 *.ear
 .idea/
 *.iml
-.vscode/
 *.swp
+
+# frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/
 
 # env / secrets
 .env
