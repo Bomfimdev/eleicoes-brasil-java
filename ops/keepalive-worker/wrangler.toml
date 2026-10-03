@@ -1,0 +1,8 @@
+name = "eleicoes-brasil-keepalive"
+main = "src/index.js"
+compatibility_date = "2026-10-01"
+account_id = "ac3c0d74d038b23343f4a72127a040dd"
+
+# A cada 5 minutos (warmup Render Free).
+[triggers]
+crons = ["*/5 * * * *"]

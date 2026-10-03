@@ -41,18 +41,44 @@ cd backend && ./mvnw spring-boot:run
 cd frontend && npm start
 ```
 
-## cron-job.org (acordar Render nas janelas)
+## Keep-alive (acordar Render Free)
 
-Criar **dois** jobs (J1 e J2) com:
+### Ativo: Cloudflare Worker (cron a cada 5 min)
 
-- **URL:** `https://eleicoes-brasil-api.onrender.com/api/health`
-- **Método:** GET
-- **Intervalo:** a cada 5 minutos
-- **Janela J1:** 04/10/2026 16:00 → 05/10/2026 22:00 (horário de Brasília)
-- **Janela J2:** 25/10/2026 16:00 → 26/10/2026 22:00 (só se houver 2º turno)
+| Item | Valor |
+|------|--------|
+| Worker | `eleicoes-brasil-keepalive` |
+| URL (teste manual) | https://eleicoes-brasil-keepalive.gbomfimprofissional.workers.dev |
+| Cron | `*/5 * * * *` |
+| Alvo | `GET https://eleicoes-brasil-api.onrender.com/api/health` |
+| Código | `ops/keepalive-worker/` |
 
-O primeiro ping às **16h** acorda o free tier antes do TSE às 17h.  
+Redeploy:
+
+```bash
+cd ops/keepalive-worker
+# CLOUDFLARE_API_TOKEN em D:\credenciais\cloudflare\cloudflare.env
+npx wrangler deploy
+```
+
 `/api/health` **não** toca no banco (leve). Use `/api/ready` só em checagem manual.
+
+### Opcional: cron-job.org (backup J1/J2)
+
+Credenciais: `D:\credenciais\eleicoes-brasil\cron-job.env` (e-mail + senha; preencher `CRON_JOB_ORG_API_KEY` em Settings → API).
+
+Com a API key:
+
+```powershell
+.\scripts\create-cron-jobs.ps1
+```
+
+Cria dois jobs GET `/api/health` a cada 5 min (timezone `America/Sao_Paulo`):
+
+- **J1:** 04/10/2026 16:00 → 05/10/2026 22:00
+- **J2:** 25/10/2026 16:00 → 26/10/2026 22:00 (2º turno)
+
+O Worker Cloudflare já cobre o keep-alive contínuo do MVP; cron-job.org é redundância nas janelas.
 
 Env alinhado no Render:
 
@@ -60,6 +86,8 @@ Env alinhado no Render:
 ELECTION_WINDOWS=2026-10-04T17:00-03:00/2026-10-05T22:00-03:00,2026-10-25T17:00-03:00/2026-10-26T22:00-03:00
 CORS_ORIGINS=http://localhost:4200,https://eleicoes-brasil.pages.dev
 ```
+
+JVM free tier: `JAVA_TOOL_OPTIONS` no Dockerfile (`MaxMetaspaceSize=160m`, heap 160m) — sem isso a API estoura Metaspace no plano Free.
 
 ## Export modo arquivado
 
