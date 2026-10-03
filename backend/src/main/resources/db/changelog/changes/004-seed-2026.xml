@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="004-seed-2026" author="bomfim">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">SELECT COUNT(*) FROM elections WHERE slug = '2026'</sqlCheck>
+        </preConditions>
+        <comment>Eleições Gerais 2026 (oficial) — seed estrutural; dados vêm do TSE via collector.</comment>
+        <sql splitStatements="true" stripComments="true">
+            INSERT INTO elections (id, slug, name, year, kind, demo, created_at)
+            VALUES (
+                'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+                '2026',
+                'Eleições Gerais 2026',
+                2026,
+                'general',
+                FALSE,
+                NOW()
+            );
+
+            INSERT INTO election_rounds (
+                id, election_id, slug, round, date, status, provider,
+                provider_id, adapter, adapter_version, environment, mode,
+                progress_election_code, provider_election_codes, created_at, updated_at
+            ) VALUES
+            (
+                'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb1',
+                'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+                '2026-1',
+                1,
+                '2026-10-04',
+                'scheduled',
+                'TSE',
+                '3220',
+                'tse-2026',
+                '2026-v1',
+                'oficial',
+                'PRODUCTION',
+                NULL,
+                NULL,
+                NOW(),
+                NOW()
+            ),
+            (
+                'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb2',
+                'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+                '2026-2',
+                2,
+                '2026-10-25',
+                'scheduled',
+                'TSE',
+                NULL,
+                'tse-2026',
+                '2026-v1',
+                'oficial',
+                'PRODUCTION',
+                NULL,
+                NULL,
+                NOW(),
+                NOW()
+            );
+
+            INSERT INTO offices (
+                id, round_id, provider, provider_id, provider_election_code,
+                slug, name, kind, scope, states
+            ) VALUES
+            (
+                'cccccccc-cccc-cccc-cccc-cccccccccc01',
+                'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb1',
+                'TSE', '1', NULL,
+                'presidente', 'Presidente', 'majoritarian', 'country', NULL
+            ),
+            (
+                'cccccccc-cccc-cccc-cccc-cccccccccc02',
+                'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb1',
+                'TSE', '3', NULL,
+                'governador', 'Governador', 'majoritarian', 'state', NULL
+            );
+
+            INSERT INTO area_progress (
+                round_id, area_key, area_type, state_code, status,
+                counted_pct, turnout, totalized_at, progress, updated_at
+            ) VALUES (
+                'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb1',
+                'br', 'country', NULL, 'waiting',
+                NULL, NULL, NULL,
+                '{"source": "seed-2026"}'::jsonb,
+                NOW()
+            );
+
+            INSERT INTO area_results (
+                round_id, office_id, area_key, area_type, state_code,
+                counted_pct, totalized_at, result, previous_candidates,
+                provenance, checksum, updated_at
+            ) VALUES (
+                'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb1',
+                'cccccccc-cccc-cccc-cccc-cccccccccc01',
+                'br', 'country', NULL,
+                NULL, NULL,
+                '{"votes": {"valid": null, "blank": null, "nullVotes": null, "total": null}, "candidates": []}'::jsonb,
+                NULL,
+                '{"provider": "TSE", "note": "aguardando divulgação oficial"}'::jsonb,
+                'seed-2026-br-presidente',
+                NOW()
+            );
+
+            INSERT INTO ingestion_events (
+                round_id, occurred_at, type, area_key, state_code,
+                sections_added, votes_added, counted_pct, message, context
+            ) VALUES (
+                'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb1',
+                NOW(),
+                'seed',
+                'br',
+                NULL,
+                NULL, NULL, NULL,
+                'Seed Eleições Gerais 2026 (estrutura; sem votos inventados)',
+                '{"demo": false}'::jsonb
+            );
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

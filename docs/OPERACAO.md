@@ -18,8 +18,11 @@ Projeto **independente**. Não é serviço oficial da Justiça Eleitoral.
 |------|----------------|
 | `DEVELOPMENT` | Fixtures classpath; collector pode ignorar janelas (`COLLECTOR_IGNORE_WINDOWS`) |
 | `SIMULATION` | HTTP em `resultados-sim.tse.jus.br` + rate limit/ETag |
-| `PRODUCTION` | HTTP em `resultados.tse.jus.br` |
+| `PRODUCTION` | HTTP em `resultados.tse.jus.br` (pleito `3220` / round `2026-1`) |
 | `REPLAY` | Reaplica `progress_snapshots` / `result_snapshots` do round (`REPLAY_SOURCE_ROUND_SLUG`), sem TSE |
+
+**Produção (Render):** `APP_MODE=PRODUCTION`, `COLLECTOR_ROUND_SLUG=2026-1`, `TSE_PROVIDER_ROUND_ID=3220`.  
+UI e API usam **Eleições Gerais 2026** (não demo). Fora da janela o collector fica no-op; a tela mostra *Aguardando apuração*.
 
 ## Docker Compose local
 
@@ -95,12 +98,12 @@ Após o encerramento da janela (collector parado, dados finais no Neon):
 
 ```powershell
 # PowerShell
-.\scripts\export-archive.ps1 -ApiUrl https://eleicoes-brasil-api.onrender.com -RoundSlug demo-1
+.\scripts\export-archive.ps1 -ApiUrl https://eleicoes-brasil-api.onrender.com -RoundSlug 2026-1
 ```
 
 ```bash
 # bash
-./scripts/export-archive.sh https://eleicoes-brasil-api.onrender.com demo-1
+./scripts/export-archive.sh https://eleicoes-brasil-api.onrender.com 2026-1
 ```
 
 Isso grava `frontend/public/archive/<slug>.json`. Rebuild + deploy do Pages.  
@@ -124,7 +127,7 @@ Gate fecha collector · parar jobs do cron · exportar archive · Pages mostra E
 1. `GET /api/health` → 200  
 2. `GET /api/ready` → 200 / database up  
 3. `GET /api/elections` → lista com `demo`  
-4. `GET /api/elections/demo-1/overview` → progresso/headline  
-5. `GET /api/realtime/elections/demo-1` → SSE `ready`  
+4. `GET /api/elections/2026-1/overview` → progresso/headline  
+5. `GET /api/realtime/elections/2026-1` → SSE `ready`  
 6. Front Pages carrega overview (CORS)  
 7. Disclaimer visível no rodapé

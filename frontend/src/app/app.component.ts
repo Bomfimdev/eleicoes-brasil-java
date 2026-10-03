@@ -1,11 +1,11 @@
-import { Component, HostListener, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, HostListener, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { ApiService } from './core/api.service';
-import { fmtClockBrt, fmtPct } from './core/format';
+import { fmtClockBrt } from './core/format';
 import { LiveSessionService } from './core/live-session.service';
-import { ElectionSummary, StateRowDto } from './core/models';
+import { ElectionSummary } from './core/models';
 
 interface NavItem {
   path: string;
@@ -26,12 +26,9 @@ export class AppComponent implements OnInit {
   readonly live = inject(LiveSessionService);
 
   readonly fmtClockBrt = fmtClockBrt;
-  readonly fmtPct = fmtPct;
 
   readonly elections = signal<ElectionSummary[]>([]);
-  readonly searchOpen = signal(false);
   readonly moreOpen = signal(false);
-  readonly searchQuery = signal('');
   readonly theme = signal<'dark' | 'light'>('dark');
 
   readonly nav: NavItem[] = [
@@ -42,56 +39,31 @@ export class AppComponent implements OnInit {
     { path: '/comparar', label: 'Comparar' },
   ];
 
-  readonly filteredStates = computed(() => {
-    const q = this.searchQuery().trim().toLowerCase();
-    const states = this.live.overview()?.states ?? [];
-    if (!q) return states.slice(0, 12);
-    return states
-      .filter((s) => s.uf.toLowerCase().includes(q) || s.name.toLowerCase().includes(q))
-      .slice(0, 20);
-  });
-
   ngOnInit(): void {
     this.live.start();
     this.api.elections().subscribe({
-      next: (list) => this.elections.set(list),
+      next: (list) => {
+        const preferred = list.filter((e) => !e.demo);
+        this.elections.set(preferred.length > 0 ? preferred : list);
+        const current = this.live.roundSlug();
+        const hasCurrent = this.elections().some((e) => e.rounds.some((r) => r.slug === current));
+        if (!hasCurrent) {
+          const first = this.elections()[0]?.rounds[0]?.slug;
+          if (first) this.live.switchRound(first);
+        }
+      },
       error: () => this.elections.set([]),
     });
     const saved = document.documentElement.dataset['theme'];
     this.theme.set(saved === 'light' ? 'light' : 'dark');
     this.router.events.pipe(filter((e) => e instanceof NavigationEnd)).subscribe(() => {
       this.moreOpen.set(false);
-      this.searchOpen.set(false);
     });
   }
 
   @HostListener('window:keydown', ['$event'])
   onKey(e: KeyboardEvent): void {
-    const typing =
-      e.target instanceof HTMLElement && /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName);
-    if ((e.key === 'k' && (e.metaKey || e.ctrlKey)) || (e.key === '/' && !typing)) {
-      e.preventDefault();
-      this.openSearch();
-    }
-    if (e.key === 'Escape') {
-      this.searchOpen.set(false);
-      this.moreOpen.set(false);
-    }
-  }
-
-  openSearch(): void {
-    this.searchOpen.set(true);
-    this.searchQuery.set('');
-    setTimeout(() => document.getElementById('search-input')?.focus(), 0);
-  }
-
-  closeSearch(): void {
-    this.searchOpen.set(false);
-  }
-
-  goState(s: StateRowDto): void {
-    this.closeSearch();
-    void this.router.navigate(['/estado', s.uf]);
+    if (e.key === 'Escape') this.moreOpen.set(false);
   }
 
   onRoundChange(slug: string): void {

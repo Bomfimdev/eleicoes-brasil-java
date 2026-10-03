@@ -44,13 +44,13 @@ eleicoes:
   sse:
     max-connections-per-ip: ${SSE_MAX_CONNECTIONS_PER_IP:5}
   replay:
-    source-round-slug: ${REPLAY_SOURCE_ROUND_SLUG:demo-1}
+    source-round-slug: ${REPLAY_SOURCE_ROUND_SLUG:2026-1}
     speed: ${REPLAY_SPEED:10}
   collector:
     enabled: ${COLLECTOR_ENABLED:true}
-    # Em DEVELOPMENT local, ignora janelas para o ciclo demo gravar fora de J1/J2.
+    # Em DEVELOPMENT local, ignora janelas para testar fora de J1/J2.
     ignore-windows: ${COLLECTOR_IGNORE_WINDOWS:true}
-    round-slug: ${COLLECTOR_ROUND_SLUG:demo-1}
+    round-slug: ${COLLECTOR_ROUND_SLUG:2026-1}
   tse:
     base-url: ${TSE_BASE_URL:}
     environment: ${TSE_ENVIRONMENT:}

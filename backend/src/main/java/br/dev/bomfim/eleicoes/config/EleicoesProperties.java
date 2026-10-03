@@ -69,7 +69,7 @@ public class EleicoesProperties {
 
   public static class Replay {
     /** Round cujos snapshots serão reproduzidos. */
-    private String sourceRoundSlug = "demo-1";
+    private String sourceRoundSlug = "2026-1";
     /** Multiplicador de velocidade (só informativo no intervalo do scheduler). */
     private double speed = 10.0;
 
@@ -118,7 +118,7 @@ public class EleicoesProperties {
     private boolean enabled = true;
     /** Só para desenvolvimento local: ignora ELECTION_WINDOWS. */
     private boolean ignoreWindows = false;
-    private String roundSlug = "demo-1";
+    private String roundSlug = "2026-1";
 
     public boolean isEnabled() {
       return enabled;

@@ -45,7 +45,7 @@ public class TseConfig {
           new Source(
               blank(base, "https://resultados.tse.jus.br"),
               blank(env, "oficial"),
-              blank(roundId, ""));
+              blank(roundId, "3220"));
       default ->
           new Source(
               blank(base, "fixture"),

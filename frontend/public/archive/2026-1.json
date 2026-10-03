@@ -1,0 +1,61 @@
+﻿{
+    "ingestion":  {
+                      "lastCycleAt":  null,
+                      "lastSuccessAt":  null,
+                      "lastError":  null,
+                      "mode":  "PRODUCTION",
+                      "state":  "idle"
+                  },
+    "headline":  {
+                     "totalizedAt":  null,
+                     "updatedAt":  null,
+                     "stateCode":  null,
+                     "officeSlug":  "presidente",
+                     "officeName":  "Presidente",
+                     "votes":  {
+
+                               },
+                     "areaType":  "country",
+                     "candidates":  [
+
+                                    ],
+                     "label":  "Brasil",
+                     "countedPct":  null,
+                     "provenance":  null,
+                     "areaKey":  "br"
+                 },
+    "round":  {
+                  "year":  2026,
+                  "slug":  "2026-1",
+                  "kind":  "general",
+                  "demo":  false,
+                  "electionSlug":  "2026",
+                  "round":  1,
+                  "offices":  [
+                                  {
+                                      "scope":  "country",
+                                      "slug":  "presidente",
+                                      "code":  "1",
+                                      "kind":  "majoritarian",
+                                      "name":  "Presidente",
+                                      "states":  null
+                                  }
+                              ],
+                  "environment":  "oficial",
+                  "date":  "2026-10-04",
+                  "status":  "scheduled",
+                  "electionName":  "Eleições Gerais 2026",
+                  "adapter":  "tse-2026@2026-v1"
+              },
+    "progress":  {
+                     "turnout":  null,
+                     "details":  null,
+                     "updatedAt":  null,
+                     "totalizedAt":  null,
+                     "status":  "waiting",
+                     "countedPct":  null
+                 },
+    "states":  [
+
+               ]
+}

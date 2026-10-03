@@ -48,19 +48,21 @@ class ElectionApiIT {
         .perform(get("/api/elections"))
         .andExpect(status().isOk())
         .andExpect(header().string("Cache-Control", "public, max-age=15"))
-        .andExpect(jsonPath("$[0].slug").value("demo"))
-        .andExpect(jsonPath("$[0].rounds[0].slug").value("demo-1"));
+        .andExpect(jsonPath("$[0].slug").value("2026"))
+        .andExpect(jsonPath("$[0].demo").value(false))
+        .andExpect(jsonPath("$[0].rounds[0].slug").value("2026-1"));
 
     mockMvc
-        .perform(get("/api/elections/demo-1/overview"))
+        .perform(get("/api/elections/2026-1/overview"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.round.slug").value("demo-1"))
+        .andExpect(jsonPath("$.round.slug").value("2026-1"))
+        .andExpect(jsonPath("$.round.electionName").value("Eleições Gerais 2026"))
         .andExpect(jsonPath("$.progress.status").value("waiting"))
         .andExpect(jsonPath("$.headline.officeSlug").value("presidente"))
         .andExpect(jsonPath("$.states").isArray());
 
     mockMvc
-        .perform(get("/api/elections/demo-1/results").param("office", "presidente").param("area", "br"))
+        .perform(get("/api/elections/2026-1/results").param("office", "presidente").param("area", "br"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.areaKey").value("br"));
   }

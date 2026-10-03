@@ -10,7 +10,13 @@ services:
       - key: SPRING_PROFILES_ACTIVE
         value: prod
       - key: APP_MODE
-        value: DEVELOPMENT
+        value: PRODUCTION
+      - key: COLLECTOR_ROUND_SLUG
+        value: 2026-1
+      - key: COLLECTOR_IGNORE_WINDOWS
+        value: "false"
+      - key: TSE_PROVIDER_ROUND_ID
+        value: "3220"
       - key: DATABASE_URL
         sync: false
       - key: DATABASE_USERNAME

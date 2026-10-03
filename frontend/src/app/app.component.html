@@ -53,12 +53,6 @@
         }
       </div>
 
-      <button type="button" class="search-btn" (click)="openSearch()">
-        <span class="search-ico" aria-hidden="true">⌕</span>
-        <span class="search-txt">Buscar</span>
-        <kbd>⌘K</kbd>
-      </button>
-
       <button
         type="button"
         class="theme-btn"
@@ -107,10 +101,10 @@
     <span class="bico" aria-hidden="true">●</span>
     Ao vivo
   </a>
-  <button type="button" (click)="openSearch()">
-    <span class="bico" aria-hidden="true">⌕</span>
-    Buscar
-  </button>
+  <a routerLink="/historico" routerLinkActive="is-active">
+    <span class="bico" aria-hidden="true">◷</span>
+    Histórico
+  </a>
   <button type="button" (click)="moreOpen.set(true)" [attr.aria-expanded]="moreOpen()">
     <span class="bico" aria-hidden="true">⋯</span>
     Mais
@@ -126,45 +120,14 @@
         <button type="button" class="icon-x" (click)="moreOpen.set(false)" aria-label="Fechar">✕</button>
       </div>
       <ul>
-        <li><a routerLink="/historico" (click)="moreOpen.set(false)">Histórico da apuração</a></li>
         <li><a routerLink="/comparar" (click)="moreOpen.set(false)">Comparar estados</a></li>
         <li class="theme-row">
           <span>Tema</span>
-          <button type="button" class="theme-btn" (click)="toggleTheme()">
+          <button type="button" class="theme-btn on-sheet" (click)="toggleTheme()">
             {{ theme() === 'light' ? 'Escuro' : 'Claro' }}
           </button>
         </li>
       </ul>
-    </div>
-  </div>
-}
-
-@if (searchOpen()) {
-  <div class="palette" role="dialog" aria-modal="true" aria-label="Buscar">
-    <button type="button" class="sheet-backdrop" aria-label="Fechar" (click)="closeSearch()"></button>
-    <div class="palette-panel">
-      <input
-        id="search-input"
-        type="search"
-        placeholder="Buscar estado…"
-        [ngModel]="searchQuery()"
-        (ngModelChange)="searchQuery.set($event)"
-        autocomplete="off"
-      />
-      <ul>
-        @for (s of filteredStates(); track s.uf) {
-          <li>
-            <button type="button" (click)="goState(s)">
-              <span class="uf">{{ s.uf }}</span>
-              <span>{{ s.name }}</span>
-              <span class="muted">{{ fmtPct(s.progress?.countedPct ?? null, 1) }}</span>
-            </button>
-          </li>
-        } @empty {
-          <li class="empty">Nenhum estado encontrado.</li>
-        }
-      </ul>
-      <p class="hint">⌘K ou / para abrir · Esc para fechar</p>
     </div>
   </div>
 }
