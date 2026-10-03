@@ -2,12 +2,16 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { OverviewDto, ResultDto, StateDetailDto } from './models';
+import { ElectionSummary, OverviewDto, ResultDto, StateDetailDto } from './models';
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
   private readonly http = inject(HttpClient);
   private readonly base = environment.apiUrl;
+
+  elections(): Observable<ElectionSummary[]> {
+    return this.http.get<ElectionSummary[]>(`${this.base}/api/elections`);
+  }
 
   overview(roundSlug: string, version?: number): Observable<OverviewDto> {
     const v = version != null ? `?v=${version}` : '';

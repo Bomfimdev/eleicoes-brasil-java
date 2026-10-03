@@ -1,30 +1,30 @@
 @if (live.overview(); as o) {
-  <section class="hero-status" [attr.data-phase]="live.phase()">
-    <div class="phase">
-      <span class="dot" aria-hidden="true"></span>
-      <strong>{{ phaseLabel() }}</strong>
-      @if (live.lagLabel(); as lag) {
-        <span class="lag">última ok há {{ lag }}</span>
+  <header class="page-head">
+    <h1>{{ o.round.electionName }}</h1>
+    <p class="sub">
+      {{ o.round.round }}º turno
+      @if (o.round.date) {
+        · {{ formatDate(o.round.date) }}
       }
-    </div>
-    <p class="election">{{ o.round.electionName }} · {{ o.round.round }}º turno</p>
-    @if (o.round.demo) {
-      <p class="demo-tag">Dados DEMO — fictícios, não oficiais</p>
-    }
-  </section>
+      @if (o.round.demo) {
+        · dados demonstrativos
+      }
+    </p>
+  </header>
 
   <section class="progress-block">
     <h2>Apuração Brasil</h2>
-    <div class="bar" role="progressbar"
+    <div
+      class="bar"
+      role="progressbar"
       [attr.aria-valuenow]="o.progress?.countedPct ?? null"
-      aria-valuemin="0" aria-valuemax="100">
+      aria-valuemin="0"
+      aria-valuemax="100"
+    >
       <div class="fill" [style.width.%]="o.progress?.countedPct ?? 0"></div>
     </div>
-    <p class="pct">{{ fmtPct(o.progress?.countedPct ?? null) }} das seções</p>
-    <p class="meta">
-      Comparecimento {{ fmtInt(o.progress?.turnout ?? null) }}
-      · atualizado {{ fmtClock(o.progress?.updatedAt ?? o.ingestion.lastSuccessAt) }}
-    </p>
+    <p class="pct numeral">{{ fmtPct(o.progress?.countedPct ?? null) }}</p>
+    <p class="meta">das seções · comparecimento {{ fmtInt(o.progress?.turnout ?? null) }}</p>
   </section>
 
   <section class="headline">
@@ -41,8 +41,11 @@
                 <span class="party">{{ c.partyAbbreviation || '—' }}</span>
               </div>
               <div class="row nums">
-                <span>{{ fmtPct(c.percent) }}</span>
+                <span class="numeral">{{ fmtPct(c.percent) }}</span>
                 <span class="muted">{{ fmtInt(c.votes) }} votos</span>
+              </div>
+              <div class="cand-bar" aria-hidden="true">
+                <div class="cand-fill" [style.width.%]="c.percent ?? 0"></div>
               </div>
             </li>
           }
@@ -53,10 +56,13 @@
     }
   </section>
 
-  <section class="states">
-    <h2>Estados</h2>
+  <section class="states-preview">
+    <div class="sec-head">
+      <h2>Estados</h2>
+      <a routerLink="/estados">Ver todos</a>
+    </div>
     <ul>
-      @for (s of o.states; track s.uf) {
+      @for (s of o.states.slice(0, 8); track s.uf) {
         <li>
           <a [routerLink]="['/estado', s.uf]">
             <span class="uf">{{ s.uf }}</span>

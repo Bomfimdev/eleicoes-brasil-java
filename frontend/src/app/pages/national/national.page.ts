@@ -16,22 +16,22 @@ export class NationalPage implements OnInit {
   readonly fmtInt = fmtInt;
   readonly fmtClock = fmtClock;
 
+  private readonly dateFmt = new Intl.DateTimeFormat('pt-BR', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    timeZone: 'UTC',
+  });
+
   ngOnInit(): void {
     this.live.start();
   }
 
-  phaseLabel(): string {
-    switch (this.live.phase()) {
-      case 'ao_vivo':
-        return 'Ao vivo';
-      case 'encerrado':
-        return 'Encerrado';
-      case 'atrasado':
-        return 'Atrasado';
-      case 'offline':
-        return 'Offline';
-      default:
-        return 'Aguardando início';
+  formatDate(isoDate: string): string {
+    try {
+      return this.dateFmt.format(new Date(`${isoDate}T12:00:00Z`));
+    } catch {
+      return isoDate;
     }
   }
 }

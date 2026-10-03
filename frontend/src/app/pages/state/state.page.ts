@@ -43,7 +43,7 @@ export class StatePage implements OnInit, OnDestroy {
   private load(uf: string): void {
     this.loading.set(true);
     this.error.set(null);
-    const slug = this.live.roundSlug;
+    const slug = this.live.roundSlug();
     const v = this.live.version();
     this.api.state(slug, uf, v).subscribe({
       next: (d) => {

@@ -1,0 +1,27 @@
+@if (live.overview(); as o) {
+  <header class="page-head">
+    <h1>{{ o.round.electionName }}</h1>
+    <p class="sub">{{ o.round.round }}º turno · apuração por estado</p>
+  </header>
+
+  <ul class="states">
+    @for (s of o.states; track s.uf) {
+      <li>
+        <a [routerLink]="['/estado', s.uf]">
+          <span class="uf">{{ s.uf }}</span>
+          <span class="name">{{ s.name }}</span>
+          <span class="meta">
+            @if (s.leaderName) {
+              <span class="leader">{{ s.leaderName }}</span>
+            }
+            <span class="pct">{{ fmtPct(s.progress?.countedPct ?? null, 1) }}</span>
+          </span>
+        </a>
+      </li>
+    }
+  </ul>
+} @else if (live.loading()) {
+  <p class="muted">Carregando estados…</p>
+} @else {
+  <p class="muted">Sem dados de estados no momento.</p>
+}

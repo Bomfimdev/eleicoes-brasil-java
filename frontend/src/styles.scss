@@ -1,4 +1,42 @@
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;700&family=Source+Sans+3:wght@400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,400..700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+  --ground: #0f1519;
+  --surface: #151d22;
+  --surface-2: #1b252b;
+  --line: #26323a;
+  --line-strong: #34434c;
+  --ink: #e6ecea;
+  --ink-2: #b6c2bf;
+  --muted: #84928f;
+  --live: #34c38f;
+  --live-soft: rgb(52 195 143 / 0.14);
+  --warn: #e8a33d;
+  --warn-soft: rgb(232 163 61 / 0.14);
+  --bad: #ef5b52;
+  --info: #58b4e0;
+  --font-sans: 'Archivo', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  color-scheme: dark;
+}
+
+:root[data-theme='light'] {
+  --ground: #f2f5f4;
+  --surface: #ffffff;
+  --surface-2: #eef2f1;
+  --line: #dce3e1;
+  --line-strong: #c5cfcc;
+  --ink: #10181b;
+  --ink-2: #3a484c;
+  --muted: #62716f;
+  --live: #0e9467;
+  --live-soft: rgb(14 148 103 / 0.1);
+  --warn: #a8690f;
+  --warn-soft: rgb(168 105 15 / 0.1);
+  --bad: #c3342c;
+  --info: #1b76a6;
+  color-scheme: light;
+}
 
 * {
   box-sizing: border-box;
@@ -9,15 +47,53 @@ body {
   margin: 0;
   padding: 0;
   min-height: 100%;
-  background:
-    radial-gradient(1200px 500px at 10% -10%, rgba(47, 143, 107, 0.18), transparent 55%),
-    #101412;
-  color: #e8eee9;
-  font-family: 'Source Sans 3', 'Segoe UI', sans-serif;
+  background: var(--ground);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.5;
+  font-variant-numeric: tabular-nums;
   -webkit-font-smoothing: antialiased;
 }
 
+a {
+  color: inherit;
+}
+
 button,
-input {
+input,
+select {
   font: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--info);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+@keyframes pulse-dot {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, currentColor 55%, transparent);
+  }
+  70% {
+    box-shadow: 0 0 0 7px transparent;
+  }
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+}
+
+.pulse-dot {
+  animation: pulse-dot 1.8s ease-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

@@ -1,36 +1,170 @@
-<div class="app">
-  <header class="top">
-    <a routerLink="/" class="brand">
-      <span class="brand-mark">EB</span>
-      <span class="brand-text">
-        <strong>{{ title }}</strong>
-        <small>Apuração · TSE</small>
-      </span>
+<a href="#conteudo" class="skip">Pular para o conteúdo</a>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <a routerLink="/" class="brand" aria-label="Eleições Brasil — visão geral">
+      <span class="logo" aria-hidden="true">EB</span>
+      <span class="brand-name">Eleições Brasil</span>
     </a>
-    @if (live.phase(); as phase) {
-      <span class="pill" [attr.data-phase]="phase">
-        @switch (phase) {
-          @case ('ao_vivo') { Ao vivo }
-          @case ('encerrado') { Encerrado }
-          @case ('atrasado') { Atrasado }
-          @case ('offline') { Offline }
-          @default { Aguardando }
+
+    <label class="switcher">
+      <span class="sr-only">Eleição e turno</span>
+      <select
+        [ngModel]="live.roundSlug()"
+        (ngModelChange)="onRoundChange($event)"
+        [attr.aria-label]="'Eleição e turno'"
+      >
+        @for (e of elections(); track e.slug) {
+          <optgroup [label]="e.name">
+            @for (r of e.rounds; track r.slug) {
+              <option [value]="r.slug">{{ roundOptionLabel(e, r) }}</option>
+            }
+          </optgroup>
         }
-      </span>
-    }
-  </header>
+        @if (elections().length === 0) {
+          <option [value]="live.roundSlug()">{{ live.roundSlug() }}</option>
+        }
+      </select>
+      <span class="chev" aria-hidden="true">▾</span>
+    </label>
 
-  <main class="content">
-    <router-outlet />
-  </main>
+    <nav class="nav-desk" aria-label="Seções">
+      @for (n of nav; track n.path) {
+        <a
+          [routerLink]="n.path"
+          routerLinkActive="is-active"
+          [routerLinkActiveOptions]="{ exact: !!n.exact }"
+          >{{ n.label }}</a
+        >
+      }
+    </nav>
 
-  <footer class="foot">
+    <div class="top-actions">
+      <div class="live-status" role="status" aria-live="polite" [attr.data-tone]="statusTone()">
+        <span class="live-label">
+          <span class="dot" [class.pulse-dot]="statusTone() === 'live'" aria-hidden="true"></span>
+          {{ live.statusLabel() }}
+        </span>
+        @if (live.updatedAt(); as upd) {
+          <span class="live-clock">
+            <span class="sr-only">Última atualização às </span>
+            <time [attr.dateTime]="upd">{{ fmtClockBrt(upd) }}</time> BRT
+          </span>
+        }
+      </div>
+
+      <button type="button" class="search-btn" (click)="openSearch()">
+        <span class="search-ico" aria-hidden="true">⌕</span>
+        <span class="search-txt">Buscar</span>
+        <kbd>⌘K</kbd>
+      </button>
+
+      <button
+        type="button"
+        class="theme-btn"
+        (click)="toggleTheme()"
+        [attr.aria-label]="theme() === 'light' ? 'Usar tema escuro' : 'Usar tema claro'"
+      >
+        {{ theme() === 'light' ? '☾' : '☀' }}
+      </button>
+    </div>
+  </div>
+</header>
+
+@if (live.overview()?.round?.demo) {
+  <div class="demo-banner" role="note">
+    Eleição demonstrativa com candidatos e partidos fictícios. Estes números não são resultados reais.
+  </div>
+}
+
+<main id="conteudo" class="content">
+  <router-outlet />
+</main>
+
+<footer class="site-foot">
+  <div class="foot-inner">
     <p>
-      Projeto independente — <strong>não é</strong> serviço oficial da Justiça Eleitoral.
-      Fonte: dados públicos do TSE.
+      Fonte: Tribunal Superior Eleitoral — TSE. Este site não é um serviço oficial da Justiça Eleitoral.
+      Resultados parciais refletem apenas as seções totalizadas até o horário indicado.
     </p>
-    @if (live.error(); as err) {
-      <p class="foot-warn">{{ err }}</p>
-    }
-  </footer>
-</div>
+    <p class="foot-meta">Eleições Brasil · Java / Angular</p>
+  </div>
+  @if (live.error(); as err) {
+    <p class="foot-warn">{{ err }}</p>
+  }
+</footer>
+
+<nav class="bottom-nav" aria-label="Navegação principal">
+  <a routerLink="/" routerLinkActive="is-active" [routerLinkActiveOptions]="{ exact: true }">
+    <span class="bico" aria-hidden="true">▣</span>
+    Visão geral
+  </a>
+  <a routerLink="/estados" routerLinkActive="is-active">
+    <span class="bico" aria-hidden="true">☰</span>
+    Estados
+  </a>
+  <a routerLink="/ao-vivo" routerLinkActive="is-active">
+    <span class="bico" aria-hidden="true">●</span>
+    Ao vivo
+  </a>
+  <button type="button" (click)="openSearch()">
+    <span class="bico" aria-hidden="true">⌕</span>
+    Buscar
+  </button>
+  <button type="button" (click)="moreOpen.set(true)" [attr.aria-expanded]="moreOpen()">
+    <span class="bico" aria-hidden="true">⋯</span>
+    Mais
+  </button>
+</nav>
+
+@if (moreOpen()) {
+  <div class="sheet" role="dialog" aria-modal="true" aria-label="Mais opções">
+    <button type="button" class="sheet-backdrop" aria-label="Fechar" (click)="moreOpen.set(false)"></button>
+    <div class="sheet-panel">
+      <div class="sheet-head">
+        <strong>Mais</strong>
+        <button type="button" class="icon-x" (click)="moreOpen.set(false)" aria-label="Fechar">✕</button>
+      </div>
+      <ul>
+        <li><a routerLink="/historico" (click)="moreOpen.set(false)">Histórico da apuração</a></li>
+        <li><a routerLink="/comparar" (click)="moreOpen.set(false)">Comparar estados</a></li>
+        <li class="theme-row">
+          <span>Tema</span>
+          <button type="button" class="theme-btn" (click)="toggleTheme()">
+            {{ theme() === 'light' ? 'Escuro' : 'Claro' }}
+          </button>
+        </li>
+      </ul>
+    </div>
+  </div>
+}
+
+@if (searchOpen()) {
+  <div class="palette" role="dialog" aria-modal="true" aria-label="Buscar">
+    <button type="button" class="sheet-backdrop" aria-label="Fechar" (click)="closeSearch()"></button>
+    <div class="palette-panel">
+      <input
+        id="search-input"
+        type="search"
+        placeholder="Buscar estado…"
+        [ngModel]="searchQuery()"
+        (ngModelChange)="searchQuery.set($event)"
+        autocomplete="off"
+      />
+      <ul>
+        @for (s of filteredStates(); track s.uf) {
+          <li>
+            <button type="button" (click)="goState(s)">
+              <span class="uf">{{ s.uf }}</span>
+              <span>{{ s.name }}</span>
+              <span class="muted">{{ fmtPct(s.progress?.countedPct ?? null, 1) }}</span>
+            </button>
+          </li>
+        } @empty {
+          <li class="empty">Nenhum estado encontrado.</li>
+        }
+      </ul>
+      <p class="hint">⌘K ou / para abrir · Esc para fechar</p>
+    </div>
+  </div>
+}

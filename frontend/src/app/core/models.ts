@@ -1,5 +1,28 @@
 export type UiPhase = 'aguardando' | 'ao_vivo' | 'encerrado' | 'atrasado' | 'offline';
 
+export interface RoundSummary {
+  slug: string;
+  electionSlug: string;
+  electionName: string;
+  year: number;
+  kind: string;
+  round: number;
+  date: string;
+  status: string;
+  environment: string | null;
+  demo: boolean;
+  adapter: string | null;
+}
+
+export interface ElectionSummary {
+  slug: string;
+  name: string;
+  year: number;
+  kind: string;
+  demo: boolean;
+  rounds: RoundSummary[];
+}
+
 export interface RoundDetail {
   slug: string;
   electionSlug: string;

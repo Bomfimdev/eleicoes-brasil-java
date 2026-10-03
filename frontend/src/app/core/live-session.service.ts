@@ -13,7 +13,7 @@ export class LiveSessionService implements OnDestroy {
   private sub: Subscription | null = null;
   private clockTimer: ReturnType<typeof setInterval> | null = null;
 
-  readonly roundSlug = environment.roundSlug;
+  readonly roundSlug = signal(environment.roundSlug);
   readonly overview = signal<OverviewDto | null>(null);
   readonly version = signal(0);
   readonly lastOkAt = signal<string | null>(null);
@@ -37,6 +37,25 @@ export class LiveSessionService implements OnDestroy {
 
   readonly lagLabel = computed(() => ageLabel(this.lastOkAt(), this.now()));
 
+  readonly statusLabel = computed(() => {
+    switch (this.phase()) {
+      case 'ao_vivo':
+        return 'Ao vivo';
+      case 'encerrado':
+        return 'Apuração encerrada';
+      case 'atrasado':
+        return 'Dados atrasados';
+      case 'offline':
+        return 'Offline';
+      default:
+        return 'Aguardando apuração';
+    }
+  });
+
+  readonly updatedAt = computed(
+    () => this.overview()?.progress?.updatedAt ?? this.overview()?.ingestion?.lastSuccessAt ?? null,
+  );
+
   start(): void {
     if (this.started) {
       if (!this.overview()) this.refresh();
@@ -44,7 +63,7 @@ export class LiveSessionService implements OnDestroy {
     }
     this.started = true;
     this.refresh();
-    this.realtime.connect(this.roundSlug);
+    this.realtime.connect(this.roundSlug());
     this.sub?.unsubscribe();
     this.sub = this.realtime.version$.subscribe((ev) => {
       this.version.set(ev.version);
@@ -53,9 +72,20 @@ export class LiveSessionService implements OnDestroy {
     this.clockTimer = setInterval(() => this.now.set(Date.now()), 5_000);
   }
 
+  switchRound(slug: string): void {
+    if (!slug || slug === this.roundSlug()) return;
+    this.roundSlug.set(slug);
+    this.overview.set(null);
+    this.loading.set(true);
+    this.error.set(null);
+    this.realtime.disconnect();
+    this.realtime.connect(slug);
+    this.refresh();
+  }
+
   refresh(version?: number): void {
     this.loading.set(true);
-    this.api.overview(this.roundSlug, version).subscribe({
+    this.api.overview(this.roundSlug(), version).subscribe({
       next: (data) => {
         this.overview.set(data);
         this.lastOkAt.set(new Date().toISOString());

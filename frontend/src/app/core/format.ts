@@ -29,6 +29,22 @@ export function fmtClock(iso: string | null | undefined): string {
   }
 }
 
+/** Só horário em BRT (ex.: 11:46:46), como no header do original. */
+export function fmtClockBrt(iso: string | null | undefined): string {
+  if (!iso) return '';
+  try {
+    return new Intl.DateTimeFormat('pt-BR', {
+      timeZone: 'America/Sao_Paulo',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false,
+    }).format(new Date(iso));
+  } catch {
+    return '';
+  }
+}
+
 export function ageLabel(iso: string | null | undefined, now = Date.now()): string | null {
   if (!iso) return null;
   const ms = now - new Date(iso).getTime();
