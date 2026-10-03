@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="001-schema" author="bomfim">
+        <sql splitStatements="true" stripComments="true">
+            CREATE TABLE elections (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                slug TEXT NOT NULL,
+                name TEXT NOT NULL,
+                year SMALLINT NOT NULL,
+                kind TEXT NOT NULL,
+                demo BOOLEAN NOT NULL DEFAULT FALSE,
+                created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                CONSTRAINT elections_slug_unique UNIQUE (slug)
+            );
+
+            CREATE TABLE election_rounds (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                election_id UUID NOT NULL REFERENCES elections (id) ON DELETE CASCADE,
+                slug TEXT NOT NULL,
+                round SMALLINT NOT NULL,
+                date DATE NOT NULL,
+                status TEXT NOT NULL DEFAULT 'scheduled',
+                provider TEXT NOT NULL DEFAULT 'TSE',
+                provider_id TEXT,
+                adapter TEXT,
+                adapter_version TEXT,
+                environment TEXT,
+                mode TEXT,
+                progress_election_code TEXT,
+                provider_election_codes TEXT[],
+                created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                CONSTRAINT election_rounds_slug_unique UNIQUE (slug)
+            );
+
+            CREATE TABLE offices (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                round_id UUID NOT NULL REFERENCES election_rounds (id) ON DELETE CASCADE,
+                provider TEXT NOT NULL DEFAULT 'TSE',
+                provider_id TEXT NOT NULL,
+                provider_election_code TEXT NOT NULL,
+                slug TEXT NOT NULL,
+                name TEXT NOT NULL,
+                kind TEXT NOT NULL,
+                scope TEXT NOT NULL,
+                states TEXT[]
+            );
+
+            CREATE UNIQUE INDEX offices_round_slug ON offices (round_id, slug);
+
+            CREATE TABLE cities (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                provider TEXT NOT NULL DEFAULT 'TSE',
+                state_code TEXT NOT NULL,
+                provider_id TEXT NOT NULL,
+                ibge_code TEXT,
+                name TEXT NOT NULL,
+                search_name TEXT NOT NULL,
+                is_capital BOOLEAN NOT NULL DEFAULT FALSE,
+                zones TEXT[] NOT NULL DEFAULT '{}'
+            );
+
+            CREATE UNIQUE INDEX cities_provider_code ON cities (provider, state_code, provider_id);
+            CREATE INDEX cities_search ON cities (search_name);
+
+            CREATE TABLE parties (
+                round_id UUID NOT NULL REFERENCES election_rounds (id) ON DELETE CASCADE,
+                number TEXT NOT NULL,
+                abbreviation TEXT NOT NULL,
+                name TEXT NOT NULL,
+                CONSTRAINT parties_round_id_number_pk PRIMARY KEY (round_id, number)
+            );
+
+            CREATE TABLE candidates (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                round_id UUID NOT NULL REFERENCES election_rounds (id) ON DELETE CASCADE,
+                office_id UUID NOT NULL REFERENCES offices (id) ON DELETE CASCADE,
+                state_code TEXT,
+                provider TEXT NOT NULL DEFAULT 'TSE',
+                provider_id TEXT NOT NULL,
+                number TEXT NOT NULL,
+                name TEXT NOT NULL,
+                ballot_name TEXT NOT NULL,
+                search_name TEXT NOT NULL,
+                party_number TEXT NOT NULL,
+                party_abbreviation TEXT NOT NULL,
+                coalition TEXT,
+                running_mates JSONB NOT NULL DEFAULT '[]'::jsonb
+            );
+
+            CREATE UNIQUE INDEX candidates_provider ON candidates (round_id, office_id, provider_id);
+            CREATE INDEX candidates_search ON candidates (round_id, search_name);
+
+            CREATE TABLE area_progress (
+                round_id UUID NOT NULL REFERENCES election_rounds (id) ON DELETE CASCADE,
+                area_key TEXT NOT NULL,
+                area_type TEXT NOT NULL,
+                state_code TEXT,
+                status TEXT NOT NULL,
+                counted_pct DOUBLE PRECISION,
+                turnout BIGINT,
+                totalized_at TIMESTAMPTZ,
+                progress JSONB NOT NULL,
+                updated_at TIMESTAMPTZ NOT NULL,
+                CONSTRAINT area_progress_round_id_area_key_pk PRIMARY KEY (round_id, area_key)
+            );
+
+            CREATE INDEX area_progress_type ON area_progress (round_id, area_type, state_code);
+
+            CREATE TABLE area_results (
+                round_id UUID NOT NULL REFERENCES election_rounds (id) ON DELETE CASCADE,
+                office_id UUID NOT NULL REFERENCES offices (id) ON DELETE CASCADE,
+                area_key TEXT NOT NULL,
+                area_type TEXT NOT NULL,
+                state_code TEXT,
+                counted_pct DOUBLE PRECISION,
+                totalized_at TIMESTAMPTZ,
+                result JSONB NOT NULL,
+                previous_candidates JSONB,
+                provenance JSONB NOT NULL,
+                checksum TEXT NOT NULL,
+                updated_at TIMESTAMPTZ NOT NULL,
+                CONSTRAINT area_results_round_id_office_id_area_key_pk PRIMARY KEY (round_id, office_id, area_key)
+            );
+
+            CREATE INDEX area_results_type ON area_results (round_id, office_id, area_type, state_code);
+
+            CREATE TABLE progress_snapshots (
+                id BIGSERIAL PRIMARY KEY,
+                round_id UUID NOT NULL REFERENCES election_rounds (id) ON DELETE CASCADE,
+                area_key TEXT NOT NULL,
+                area_type TEXT NOT NULL,
+                state_code TEXT,
+                captured_at TIMESTAMPTZ NOT NULL,
+                totalized_at TIMESTAMPTZ,
+                counted_pct DOUBLE PRECISION,
+                sections_counted INTEGER,
+                turnout BIGINT,
+                progress JSONB NOT NULL,
+                source_file TEXT,
+                source_id TEXT
+            );
+
+            CREATE INDEX progress_snapshots_area_time ON progress_snapshots (round_id, area_key, captured_at);
+            CREATE INDEX progress_snapshots_type_time ON progress_snapshots (round_id, area_type, captured_at);
+
+            CREATE TABLE result_snapshots (
+                id BIGSERIAL PRIMARY KEY,
+                round_id UUID NOT NULL REFERENCES election_rounds (id) ON DELETE CASCADE,
+                office_id UUID NOT NULL REFERENCES offices (id) ON DELETE CASCADE,
+                area_key TEXT NOT NULL,
+                area_type TEXT NOT NULL,
+                state_code TEXT,
+                captured_at TIMESTAMPTZ NOT NULL,
+                totalized_at TIMESTAMPTZ,
+                counted_pct DOUBLE PRECISION,
+                votes JSONB NOT NULL,
+                candidates JSONB,
+                provenance JSONB NOT NULL
+            );
+
+            CREATE INDEX result_snapshots_area_time ON result_snapshots (round_id, office_id, area_key, captured_at);
+
+            CREATE TABLE ingestion_events (
+                id BIGSERIAL PRIMARY KEY,
+                round_id UUID NOT NULL REFERENCES election_rounds (id) ON DELETE CASCADE,
+                occurred_at TIMESTAMPTZ NOT NULL,
+                type TEXT NOT NULL,
+                area_key TEXT,
+                state_code TEXT,
+                sections_added INTEGER,
+                votes_added BIGINT,
+                counted_pct DOUBLE PRECISION,
+                message TEXT,
+                context JSONB
+            );
+
+            CREATE INDEX ingestion_events_time ON ingestion_events (round_id, occurred_at);
+            CREATE INDEX ingestion_events_type_time ON ingestion_events (round_id, type, occurred_at);
+
+            CREATE TABLE collector_cycles (
+                id UUID PRIMARY KEY,
+                round_id UUID NOT NULL REFERENCES election_rounds (id) ON DELETE CASCADE,
+                mode TEXT NOT NULL,
+                started_at TIMESTAMPTZ NOT NULL,
+                finished_at TIMESTAMPTZ,
+                requests INTEGER NOT NULL DEFAULT 0,
+                ok INTEGER NOT NULL DEFAULT 0,
+                not_modified INTEGER NOT NULL DEFAULT 0,
+                not_found INTEGER NOT NULL DEFAULT 0,
+                errors INTEGER NOT NULL DEFAULT 0,
+                avg_latency_ms DOUBLE PRECISION,
+                p95_latency_ms DOUBLE PRECISION,
+                status TEXT NOT NULL,
+                error TEXT
+            );
+
+            CREATE INDEX collector_cycles_time ON collector_cycles (round_id, started_at);
+
+            -- Fotos fora do banco: só URL (sem bytea).
+            CREATE TABLE candidate_photos (
+                round_id UUID NOT NULL REFERENCES election_rounds (id) ON DELETE CASCADE,
+                candidate_key TEXT NOT NULL,
+                content_type TEXT,
+                photo_url TEXT,
+                fetched_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                CONSTRAINT candidate_photos_round_id_candidate_key_pk PRIMARY KEY (round_id, candidate_key)
+            );
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

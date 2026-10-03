@@ -1,0 +1,31 @@
+services:
+  - type: web
+    name: eleicoes-brasil-api
+    runtime: docker
+    rootDir: backend
+    plan: free
+    region: oregon
+    healthCheckPath: /api/health
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      - key: APP_MODE
+        value: DEVELOPMENT
+      - key: DATABASE_URL
+        sync: false
+      - key: DATABASE_USERNAME
+        sync: false
+      - key: DATABASE_PASSWORD
+        sync: false
+      - key: DB_MIGRATION_USER
+        sync: false
+      - key: DB_MIGRATION_PASSWORD
+        sync: false
+      - key: DB_APP_USER
+        sync: false
+      - key: DB_APP_PASSWORD
+        sync: false
+      - key: CORS_ORIGINS
+        value: http://localhost:4200
+      - key: ELECTION_WINDOWS
+        value: 2026-10-04T17:00-03:00/2026-10-05T22:00-03:00,2026-10-25T17:00-03:00/2026-10-26T22:00-03:00

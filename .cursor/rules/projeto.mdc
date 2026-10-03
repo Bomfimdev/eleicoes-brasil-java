@@ -23,7 +23,9 @@ Este repo é a adaptação do projeto TypeScript `lucianookdp/eleicoes-brasil` p
 
 ## Stack e estilo
 
-- Java 17, Spring Boot 3, Spring Data JPA, Flyway, PostgreSQL.
+- Java 17, Spring Boot 3, Spring Data JPA, Liquibase, PostgreSQL.
+- Deploy MVP free: Cloudflare Pages + Render + Neon (mesma região EUA leste).
+- Escopo e janelas: seguir `docs/PLANO.md` sem reabrir stack no meio da fase.
 - Angular SPA mobile-first.
 - SSE para tempo real (não WebSocket no MVP).
 - springdoc-openapi / Swagger na API.

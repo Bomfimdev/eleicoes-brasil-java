@@ -4,12 +4,14 @@ services:
     container_name: eleicoes-postgres
     environment:
       POSTGRES_DB: eleicoes
+      # Owner/admin local (cria o DB). App e Liquibase usam roles dedicados.
       POSTGRES_USER: eleicoes
       POSTGRES_PASSWORD: eleicoes
     ports:
       - "5432:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U eleicoes -d eleicoes"]
       interval: 5s

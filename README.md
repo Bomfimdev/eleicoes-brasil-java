@@ -8,21 +8,24 @@ Adaptacao do projeto [eleicoes-brasil](https://github.com/lucianookdp/eleicoes-b
 
 - **Backend:** Spring Boot / Java 17 - REST + SSE + collector
 - **Frontend:** Angular 19
-- **Banco:** PostgreSQL 16 + Flyway
+- **Banco:** PostgreSQL 16 + Liquibase
 - **Infra local:** Docker Compose
+- **Deploy MVP (free):** Cloudflare Pages + Render + Neon (ver `docs/PLANO.md`)
 
 ## Estrutura
 
 ```
 backend/     Spring Boot (API + futuro collector)
 frontend/    Angular
-docs/        Plano, prompt de sessao, ADRs futuros
+docs/        Plano, prompt de sessao
+docker/      Init do Postgres (roles)
 ```
 
 ## Como rodar (dev)
 
 ```bash
-# 1) Postgres
+# 1) Postgres (recria volume se os roles mudarem)
+docker compose down -v
 docker compose up -d postgres
 
 # 2) API
@@ -34,7 +37,16 @@ cd frontend
 npm start
 ```
 
-- API health: http://localhost:8080/api/health
+Credenciais locais padrao:
+
+| Uso | Usuario | Senha |
+|-----|---------|-------|
+| Admin Docker | `eleicoes` | `eleicoes` |
+| Liquibase (DDL) | `eleicoes_migrator` | `eleicoes_migrator` |
+| App (DML) | `eleicoes_app` | `eleicoes_app` |
+
+- API health (sem banco): http://localhost:8080/api/health
+- API ready (com banco): http://localhost:8080/api/ready
 - Front: http://localhost:4200
 
 ## Contexto para o Cursor

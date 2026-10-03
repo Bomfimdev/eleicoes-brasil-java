@@ -24,8 +24,9 @@ Referência local do original (código TypeScript/Next/Fastify): `D:\Eleicoes_20
 | API REST + SSE | Spring Boot 3, Java 17 |
 | Collector (polling TSE) | Spring Boot (módulo ou app) |
 | Frontend | Angular (SPA, mobile-first) |
-| Banco | PostgreSQL 16 + Flyway |
-| Tempo real | Server-Sent Events (SSE) |
+| Banco | PostgreSQL 16 + Liquibase (roles: migrator + app) |
+| Deploy MVP (free) | Cloudflare Pages + Render + Neon (EUA leste) |
+| Tempo real | SSE (evento de versão; dados via REST) |
 | Infra local | Docker Compose |
 | Docs API | springdoc-openapi (Swagger) |
 
@@ -78,24 +79,25 @@ Entidades principais: `elections`, `election_rounds`, `offices`, `cities`, `part
 
 ## Plano de execução (ordem)
 
-1. **Fundação** — scaffold, Docker Postgres, health, Flyway vazio
-2. **Domínio + banco** — entidades, migrações, repositórios
-3. **Collector demo** — fixtures locais, sem TSE real
-4. **API REST** — endpoints read-only + Swagger
-5. **Angular** — dashboard nacional consumindo a API
-6. **SSE** — tempo real
-7. **TSE real** — adapter + rate limit + ETag/304
-8. **Polish** — mapa, histórico, Docker full stack, testes
+Fonte detalhada: `docs/PLANO.md` (escopo fechado).
+
+1. **Fundação** — scaffold, Docker Postgres, health ✅
+2. **Domínio + banco** — entidades, Liquibase, repositórios, seed demo
+3. **Collector + adapter TSE** — fixtures, janelas, rate limit
+4. **API REST + SSE** — read-only + versão via SSE
+5. **Angular** — dashboard nacional + estados de UI
+6. **Deploy e operação** — Neon/Render/Pages + cron-job.org
+7. **Pós-MVP** — mapa, histórico, etc. (novo plano)
 
 ## Como o agente deve trabalhar
 
 - Respostas em **português**, simples e diretas.
-- Preferir padrões do Gabriel: Spring Boot, JPA, Angular standalone components quando fizer sentido, Swagger, JUnit, Docker.
+- Preferir padrões do Gabriel: Spring Boot, JPA, Angular standalone components quando fizer sentido, Swagger, JUnit, Docker, Liquibase.
 - Consultar `D:\Eleicoes_2026` quando precisar espelhar contratos, schemas TSE ou regras de negócio — **não copiar Node/Next**; reimplementar em Java/Angular.
 - Não inventar métricas do TSE nem dados eleitorais fictícios como se fossem oficiais (fixtures de demo ok, bem rotuladas).
 - Commits só quando o usuário pedir.
-- Não expandir escopo além da fase atual do plano.
+- Não expandir escopo além da fase atual do `docs/PLANO.md`. Não reabrir hospedagem/stack no meio da implementação.
 
 ## Próximo passo imediato
 
-Continuar o scaffold e deixar `GET /api/health` + Postgres no Docker + app Angular “hello” rodando.
+Seguir a fase atual em `docs/PLANO.md`.

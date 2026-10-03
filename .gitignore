@@ -25,6 +25,7 @@ frontend/.angular/
 .env
 .env.*
 !.env.example
+secrets/
 *.pem
 *.p12
 *.jks

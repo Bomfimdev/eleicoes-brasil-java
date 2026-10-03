@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="002-grants-app-role" author="bomfim">
+        <comment>Concede DML ao role da aplicação, se existir (Docker/Neon).</comment>
+        <sql splitStatements="false" stripComments="true">
+            DO $do$
+            BEGIN
+                IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'eleicoes_app') THEN
+                    GRANT USAGE ON SCHEMA public TO eleicoes_app;
+                    GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO eleicoes_app;
+                    GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO eleicoes_app;
+                    ALTER DEFAULT PRIVILEGES FOR ROLE CURRENT_USER IN SCHEMA public
+                        GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO eleicoes_app;
+                    ALTER DEFAULT PRIVILEGES FOR ROLE CURRENT_USER IN SCHEMA public
+                        GRANT USAGE, SELECT ON SEQUENCES TO eleicoes_app;
+                END IF;
+            END
+            $do$;
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

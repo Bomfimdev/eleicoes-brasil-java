@@ -1,10 +1,11 @@
 spring:
-  datasource:
-    url: jdbc:postgresql://localhost:5432/eleicoes
-    username: eleicoes
-    password: eleicoes
   jpa:
     hibernate:
       ddl-auto: validate
-  flyway:
+  liquibase:
     enabled: true
+    change-log: classpath:db/changelog/db.changelog-master.xml
+
+eleicoes:
+  app-mode: DEVELOPMENT
+  cors-origins: http://localhost:4200
