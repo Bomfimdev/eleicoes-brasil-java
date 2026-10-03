@@ -43,6 +43,13 @@
     </div>
   </section>
 
+  @if (series(); as ser) {
+    <section class="block">
+      <h2>Evolução</h2>
+      <app-evolution-chart [series]="ser" />
+    </section>
+  }
+
   @if (snapshot(); as s) {
     <section class="block">
       <h2>{{ s.headline?.officeName ?? 'Resultado' }} naquele momento</h2>

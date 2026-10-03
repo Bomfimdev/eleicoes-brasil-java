@@ -1,0 +1,44 @@
+<div class="map-wrap">
+  <div class="toolbar">
+    @if (allowLeader) {
+      <div class="seg" role="group" aria-label="Colorir mapa por">
+        <button type="button" [class.on]="mode() === 'progress'" (click)="setMode('progress')">
+          Totalização
+        </button>
+        <button type="button" [class.on]="mode() === 'leader'" (click)="setMode('leader')">
+          Mais votado
+        </button>
+      </div>
+    }
+  </div>
+
+  <div class="canvas">
+    <svg [attr.viewBox]="map.viewBox" role="group" aria-label="Mapa do Brasil por estado">
+      @for (loc of map.locations; track loc.id) {
+        <path
+          [attr.d]="loc.path"
+          [attr.fill]="fill(loc.id)"
+          role="link"
+          tabindex="0"
+          [attr.aria-label]="loc.name"
+          (pointerenter)="onEnter(loc.id)"
+          (pointerleave)="onLeave()"
+          (click)="onActivate(loc.id, $event)"
+          (keydown)="onKey(loc.id, $event)"
+        />
+      }
+    </svg>
+
+    @if (shown(); as s) {
+      <aside class="panel">
+        <p class="uf">{{ s.uf }} · {{ s.name }}</p>
+        <p class="pct numeral">{{ fmtPct(s.progress?.countedPct ?? null) }}</p>
+        <p class="muted">apurado</p>
+        @if (s.leaderName) {
+          <p class="leader">{{ s.leaderName }} · {{ fmtPct(s.leaderPercent, 1) }}</p>
+        }
+        <a [routerLink]="['/estado', s.uf]">Ver estado</a>
+      </aside>
+    }
+  </div>
+</div>

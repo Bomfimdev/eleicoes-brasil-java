@@ -3,11 +3,14 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 import {
+  CityDetailDto,
+  CityPageDto,
   CompareDto,
   ElectionSummary,
   OperationsDto,
   OverviewDto,
   ResultDto,
+  SeriesDto,
   StateDetailDto,
   TimelineAtDto,
   TimelineDto,
@@ -68,6 +71,34 @@ export class ApiService {
     if (office) params.set('office', office);
     return this.http.get<CompareDto>(
       `${this.base}/api/elections/${roundSlug}/compare?${params}`,
+    );
+  }
+
+  series(roundSlug: string, office: string, area = 'br'): Observable<SeriesDto> {
+    const params = new URLSearchParams({ office, area });
+    return this.http.get<SeriesDto>(
+      `${this.base}/api/elections/${roundSlug}/series?${params}`,
+    );
+  }
+
+  cities(
+    roundSlug: string,
+    uf: string,
+    opts?: { q?: string; page?: number; pageSize?: number },
+  ): Observable<CityPageDto> {
+    const params = new URLSearchParams();
+    if (opts?.q) params.set('q', opts.q);
+    if (opts?.page != null) params.set('page', String(opts.page));
+    if (opts?.pageSize != null) params.set('pageSize', String(opts.pageSize));
+    const q = params.toString() ? `?${params}` : '';
+    return this.http.get<CityPageDto>(
+      `${this.base}/api/elections/${roundSlug}/states/${uf}/cities${q}`,
+    );
+  }
+
+  city(roundSlug: string, uf: string, code: string): Observable<CityDetailDto> {
+    return this.http.get<CityDetailDto>(
+      `${this.base}/api/elections/${roundSlug}/states/${uf}/cities/${code}`,
     );
   }
 }

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="005-seed-capitals" author="bomfim">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">SELECT COUNT(*) FROM cities WHERE provider = 'TSE' AND is_capital = TRUE</sqlCheck>
+        </preConditions>
+        <comment>Capitais das UFs (códigos TSE) para lista e coleta sob demanda.</comment>
+        <sql splitStatements="true" stripComments="true">
+            INSERT INTO cities (id, provider, state_code, provider_id, ibge_code, name, search_name, is_capital, zones) VALUES
+            ('66666666-6666-6666-6666-666666666601', 'TSE', 'AC', '01392', '1200401', 'Rio Branco', 'rio branco', TRUE, '{}'),
+            ('66666666-6666-6666-6666-666666666602', 'TSE', 'AL', '27855', '2704302', 'Maceió', 'maceio', TRUE, '{}'),
+            ('66666666-6666-6666-6666-666666666603', 'TSE', 'AP', '06050', '1600303', 'Macapá', 'macapa', TRUE, '{}'),
+            ('66666666-6666-6666-6666-666666666604', 'TSE', 'AM', '02550', '1302603', 'Manaus', 'manaus', TRUE, '{}'),
+            ('66666666-6666-6666-6666-666666666605', 'TSE', 'BA', '38490', '2927408', 'Salvador', 'salvador', TRUE, '{}'),
+            ('66666666-6666-6666-6666-666666666606', 'TSE', 'CE', '13897', '2304400', 'Fortaleza', 'fortaleza', TRUE, '{}'),
+            ('66666666-6666-6666-6666-666666666607', 'TSE', 'DF', '97012', '5300108', 'Brasília', 'brasilia', TRUE, '{}'),
+            ('66666666-6666-6666-6666-666666666608', 'TSE', 'ES', '57053', '3205309', 'Vitória', 'vitoria', TRUE, '{}'),
+            ('66666666-6666-6666-6666-666666666609', 'TSE', 'GO', '93734', '5208707', 'Goiânia', 'goiania', TRUE, '{}'),
+            ('66666666-6666-6666-6666-666666666610', 'TSE', 'MA', '09210', '2111300', 'São Luís', 'sao luis', TRUE, '{}'),
+            ('66666666-6666-6666-6666-666666666611', 'TSE', 'MT', '90670', '5103403', 'Cuiabá', 'cuiaba', TRUE, '{}'),
+            ('66666666-6666-6666-6666-666666666612', 'TSE', 'MS', '90514', '5002704', 'Campo Grande', 'campo grande', TRUE, '{}'),
+            ('66666666-6666-6666-6666-666666666613', 'TSE', 'MG', '41238', '3106200', 'Belo Horizonte', 'belo horizonte', TRUE, '{}'),
+            ('66666666-6666-6666-6666-666666666614', 'TSE', 'PA', '04278', '1501402', 'Belém', 'belem', TRUE, '{}'),
+            ('66666666-6666-6666-6666-666666666615', 'TSE', 'PB', '20516', '2507507', 'João Pessoa', 'joao pessoa', TRUE, '{}'),
+            ('66666666-6666-6666-6666-666666666616', 'TSE', 'PR', '75353', '4106902', 'Curitiba', 'curitiba', TRUE, '{}'),
+            ('66666666-6666-6666-6666-666666666617', 'TSE', 'PE', '25313', '2611606', 'Recife', 'recife', TRUE, '{}'),
+            ('66666666-6666-6666-6666-666666666618', 'TSE', 'PI', '12190', '2211001', 'Teresina', 'teresina', TRUE, '{}'),
+            ('66666666-6666-6666-6666-666666666619', 'TSE', 'RJ', '60011', '3304557', 'Rio de Janeiro', 'rio de janeiro', TRUE, '{}'),
+            ('66666666-6666-6666-6666-666666666620', 'TSE', 'RN', '17612', '2408102', 'Natal', 'natal', TRUE, '{}'),
+            ('66666666-6666-6666-6666-666666666621', 'TSE', 'RS', '88013', '4314902', 'Porto Alegre', 'porto alegre', TRUE, '{}'),
+            ('66666666-6666-6666-6666-666666666622', 'TSE', 'RO', '00035', '1100205', 'Porto Velho', 'porto velho', TRUE, '{}'),
+            ('66666666-6666-6666-6666-666666666623', 'TSE', 'RR', '03018', '1400100', 'Boa Vista', 'boa vista', TRUE, '{}'),
+            ('66666666-6666-6666-6666-666666666624', 'TSE', 'SC', '81051', '4205407', 'Florianópolis', 'florianopolis', TRUE, '{}'),
+            ('66666666-6666-6666-6666-666666666625', 'TSE', 'SP', '71072', '3550308', 'São Paulo', 'sao paulo', TRUE, '{}'),
+            ('66666666-6666-6666-6666-666666666626', 'TSE', 'SE', '31054', '2800308', 'Aracaju', 'aracaju', TRUE, '{}'),
+            ('66666666-6666-6666-6666-666666666627', 'TSE', 'TO', '73440', '1721000', 'Palmas', 'palmas', TRUE, '{}');
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

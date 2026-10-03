@@ -1,0 +1,64 @@
+@if (!ready) {
+  <p class="empty">A evolução aparece depois de duas ou mais atualizações.</p>
+} @else {
+  <ul class="legend" aria-label="Legenda">
+    @for (c of series.candidates; track c.key) {
+      <li>
+        <span class="swatch" [style.background]="c.color" aria-hidden="true"></span>
+        <span>{{ c.name || '—' }}</span>
+      </li>
+    }
+  </ul>
+  <div
+    #box
+    class="box"
+    (pointermove)="onMove($event.clientX)"
+    (pointerdown)="onMove($event.clientX)"
+    (pointerleave)="hover.set(null)"
+  >
+    @if (width() > 0) {
+      <svg [attr.width]="width()" [attr.height]="H" role="img" aria-label="Evolução do percentual de votos">
+        @for (v of yTicks; track v) {
+          <g>
+            <line
+              [attr.x1]="PAD.left"
+              [attr.x2]="width() - PAD.right"
+              [attr.y1]="y(v)"
+              [attr.y2]="y(v)"
+              class="grid"
+            />
+            <text [attr.x]="PAD.left - 6" [attr.y]="y(v) + 4" class="tick">{{ v }}</text>
+          </g>
+        }
+        @for (t of xTicks; track t) {
+          <text [attr.x]="xAt(t)" [attr.y]="H - 8" class="tick x">
+            {{ fmtClockMs(t) }}
+          </text>
+        }
+        @for (c of series.candidates; track c.key) {
+          <path [attr.d]="pathFor(c.key)" [attr.stroke]="c.color" class="line" fill="none" />
+        }
+        @if (hoverPoint(); as hp) {
+          <line
+            [attr.x1]="x(hp.at)"
+            [attr.x2]="x(hp.at)"
+            [attr.y1]="PAD.top"
+            [attr.y2]="H - PAD.bottom"
+            class="cursor"
+          />
+        }
+      </svg>
+      @if (hoverPoint(); as hp) {
+        <div class="tip" [style.left.px]="Math.min(width() - 160, Math.max(8, x(hp.at) - 70))">
+          <p class="tip-time">{{ fmtClock(hp.at) }} · {{ fmtPct(hp.countedPct) }} apurado</p>
+          @for (c of series.candidates; track c.key) {
+            <p>
+              <span class="swatch" [style.background]="c.color"></span>
+              {{ c.name }} · {{ fmtPct(hp.values[c.key]) }}
+            </p>
+          }
+        </div>
+      }
+    }
+  </div>
+}

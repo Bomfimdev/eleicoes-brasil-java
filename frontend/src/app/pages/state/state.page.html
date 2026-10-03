@@ -27,6 +27,29 @@
       <p class="empty">Sem resultado estadual de presidente ainda.</p>
     }
   </section>
+
+  <section class="result">
+    <h2>Municípios</h2>
+    @if (cities().length) {
+      <ul class="cities">
+        @for (c of cities(); track c.code) {
+          <li>
+            <a [routerLink]="['/estado', d.uf, 'municipio', c.code]">
+              <span class="name">
+                {{ c.name }}
+                @if (c.capital) {
+                  <span class="badge">capital</span>
+                }
+              </span>
+              <span class="pct">{{ fmtPct(c.progress?.countedPct ?? null, 1) }}</span>
+            </a>
+          </li>
+        }
+      </ul>
+    } @else {
+      <p class="empty">Capitais aparecem aqui quando o cadastro TSE estiver disponível.</p>
+    }
+  </section>
 } @else if (loading()) {
   <p class="muted">Carregando estado…</p>
 } @else if (error()) {

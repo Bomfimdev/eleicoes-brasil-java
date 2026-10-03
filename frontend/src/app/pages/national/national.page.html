@@ -56,22 +56,23 @@
     }
   </section>
 
-  <section class="states-preview">
+  <section class="viz">
     <div class="sec-head">
-      <h2>Estados</h2>
+      <div class="seg" role="group" aria-label="Visualização">
+        <button type="button" [class.on]="tab() === 'mapa'" (click)="setTab('mapa')">Mapa</button>
+        <button type="button" [class.on]="tab() === 'evolucao'" (click)="setTab('evolucao')">Evolução</button>
+      </div>
       <a routerLink="/estados">Ver todos</a>
     </div>
-    <ul>
-      @for (s of o.states.slice(0, 8); track s.uf) {
-        <li>
-          <a [routerLink]="['/estado', s.uf]">
-            <span class="uf">{{ s.uf }}</span>
-            <span class="sname">{{ s.name }}</span>
-            <span class="spct">{{ fmtPct(s.progress?.countedPct ?? null, 1) }}</span>
-          </a>
-        </li>
+    @if (tab() === 'mapa') {
+      <app-brazil-map [states]="o.states" [allowLeader]="!!o.headline" />
+    } @else {
+      @if (series(); as ser) {
+        <app-evolution-chart [series]="ser" />
+      } @else {
+        <p class="empty">Carregando evolução…</p>
       }
-    </ul>
+    }
   </section>
 } @else if (live.loading()) {
   <p class="muted pad">Carregando apuração…</p>

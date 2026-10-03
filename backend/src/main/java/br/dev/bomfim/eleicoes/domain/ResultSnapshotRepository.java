@@ -13,4 +13,7 @@ public interface ResultSnapshotRepository extends JpaRepository<ResultSnapshot, 
   List<ResultSnapshot>
       findByRoundIdAndOfficeIdAndAreaTypeInAndCapturedAtLessThanEqualOrderByCapturedAtDescIdDesc(
           UUID roundId, UUID officeId, Collection<String> areaTypes, Instant capturedAt);
+
+  List<ResultSnapshot> findByRoundIdAndOfficeIdAndAreaKeyAndCandidatesIsNotNullOrderByCapturedAtAscIdAsc(
+      UUID roundId, UUID officeId, String areaKey);
 }

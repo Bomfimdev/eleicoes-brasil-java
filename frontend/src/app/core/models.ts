@@ -200,3 +200,42 @@ export interface CompareDto {
     }[];
   }[];
 }
+
+export interface SeriesDto {
+  office: OfficeDto;
+  areaKey: string;
+  candidates: { key: string; name: string | null; party: string | null; color: string }[];
+  points: { at: string; countedPct: number | null; values: Record<string, number | null> }[];
+}
+
+export interface CityRowDto {
+  code: string;
+  name: string;
+  capital: boolean;
+  ibgeCode: string | null;
+  progress: ProgressDto | null;
+  leaderName: string | null;
+  leaderPercent: number | null;
+}
+
+export interface CityPageDto {
+  items: CityRowDto[];
+  page: number;
+  pageSize: number;
+  total: number;
+}
+
+export interface CityDetailDto {
+  round: RoundDetail;
+  uf: string;
+  stateName: string;
+  city: {
+    code: string;
+    name: string;
+    capital: boolean;
+    ibgeCode: string | null;
+    zones: string[];
+  };
+  progress: ProgressDto | null;
+  results: ResultDto[];
+}

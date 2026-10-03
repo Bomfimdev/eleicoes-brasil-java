@@ -4,7 +4,7 @@ import { Subscription } from 'rxjs';
 import { ApiService } from '../../core/api.service';
 import { fmtClock, fmtInt, fmtPct } from '../../core/format';
 import { LiveSessionService } from '../../core/live-session.service';
-import { ResultDto, StateDetailDto } from '../../core/models';
+import { CityRowDto, ResultDto, StateDetailDto } from '../../core/models';
 
 @Component({
   selector: 'app-state-page',
@@ -25,6 +25,7 @@ export class StatePage implements OnInit, OnDestroy {
 
   readonly detail = signal<StateDetailDto | null>(null);
   readonly result = signal<ResultDto | null>(null);
+  readonly cities = signal<CityRowDto[]>([]);
   readonly error = signal<string | null>(null);
   readonly loading = signal(true);
 
@@ -52,6 +53,10 @@ export class StatePage implements OnInit, OnDestroy {
         this.api.stateResults(slug, uf, 'presidente', v).subscribe({
           next: (r) => this.result.set(r),
           error: () => this.result.set(null),
+        });
+        this.api.cities(slug, uf, { pageSize: 40 }).subscribe({
+          next: (page) => this.cities.set(page.items),
+          error: () => this.cities.set([]),
         });
       },
       error: () => {

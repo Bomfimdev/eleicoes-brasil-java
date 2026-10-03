@@ -1,12 +1,13 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { BrazilMapComponent } from '../../components/brazil-map/brazil-map.component';
 import { fmtPct } from '../../core/format';
 import { LiveSessionService } from '../../core/live-session.service';
 
 @Component({
   selector: 'app-states-page',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, BrazilMapComponent],
   templateUrl: './states.page.html',
   styleUrl: './states.page.scss',
 })

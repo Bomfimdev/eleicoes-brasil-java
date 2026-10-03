@@ -9,6 +9,7 @@ import br.dev.bomfim.eleicoes.tse.model.ElectionConfig;
 import br.dev.bomfim.eleicoes.tse.model.Fetched;
 import br.dev.bomfim.eleicoes.tse.model.PartyResult;
 import br.dev.bomfim.eleicoes.tse.model.Provenance;
+import br.dev.bomfim.eleicoes.tse.model.StateProgress;
 import br.dev.bomfim.eleicoes.tse.model.TseOffice;
 import br.dev.bomfim.eleicoes.tse.model.VotesSummary;
 import tools.jackson.databind.JsonNode;
@@ -195,23 +196,91 @@ public class TseAdapter2026 {
   }
 
   public Fetched<AreaResultView> getCountryResult(TseOffice office) {
+    return getResult(office, "br", "country", null, null);
+  }
+
+  public Fetched<AreaResultView> getStateResult(TseOffice office, String uf) {
+    String code = uf.toUpperCase(Locale.ROOT);
+    return getResult(office, code.toLowerCase(Locale.ROOT), "state", code, null);
+  }
+
+  public Fetched<AreaResultView> getCityResult(TseOffice office, String uf, String cityCode) {
+    String code = uf.toUpperCase(Locale.ROOT);
+    String city = pad(cityCode, 5);
+    return getResult(office, code.toLowerCase(Locale.ROOT) + "-" + city, "city", code, city);
+  }
+
+  public Fetched<StateProgress> getStateProgress(String electionCode, String uf) {
+    Context ctx = ctx();
+    String state = uf.toLowerCase(Locale.ROOT);
+    String url =
+        dir(ctx, "ab", electionCode, state)
+            + "/"
+            + state
+            + "-e"
+            + pad(electionCode, 6)
+            + "-ab.json";
+    TseClient.FetchResult res = client.get(url);
+    if (res.notModified()) {
+      return Fetched.unchanged();
+    }
+    JsonNode file = parse(res.body(), url);
+    validateProgressFile(file, url);
+    CountingProgress progress = null;
+    List<AreaProgressView> cities = new ArrayList<>();
+    for (JsonNode entry : file.path("abr")) {
+      String tp = text(entry, "tpabr");
+      String cd = TseNumbers.asCode(scalar(entry, "cdabr"));
+      if ("uf".equalsIgnoreCase(tp)) {
+        progress = toProgress(entry);
+      } else if ("mu".equalsIgnoreCase(tp) || "mun".equalsIgnoreCase(tp)) {
+        String city = pad(cd, 5);
+        cities.add(
+            new AreaProgressView(
+                state + "-" + city, "city", state.toUpperCase(Locale.ROOT), toProgress(entry)));
+      }
+    }
+    if (progress == null) {
+      throw new TsePayloadException("EA15 without a uf entry", url);
+    }
+    return Fetched.of(
+        new StateProgress(state.toUpperCase(Locale.ROOT), progress, cities),
+        provenance(url, file, res));
+  }
+
+  private Fetched<AreaResultView> getResult(
+      TseOffice office, String areaKey, String areaType, String stateCode, String cityCode) {
     Context ctx = ctx();
     String ele = office.providerElectionCode();
     String suffix = "-c" + pad(office.code(), 4) + "-e" + pad(ele, 6) + "-u.json";
-    String url = dir(ctx, "u", ele, "br") + "/br" + suffix;
+    String ufPath = stateCode == null ? "br" : stateCode.toLowerCase(Locale.ROOT);
+    String fileName;
+    String expectedCdabr;
+    if ("country".equals(areaType)) {
+      fileName = "br" + suffix;
+      expectedCdabr = "br";
+    } else if ("state".equals(areaType)) {
+      fileName = ufPath + suffix;
+      expectedCdabr = ufPath;
+    } else {
+      fileName = ufPath + cityCode + suffix;
+      expectedCdabr = cityCode;
+    }
+    String url = dir(ctx, "u", ele, ufPath) + "/" + fileName;
     TseClient.FetchResult res = client.get(url);
     if (res.notModified()) {
       return Fetched.unchanged();
     }
     JsonNode file = parse(res.body(), url);
     validateResultFile(file, url);
-    if (!sameCode(TseNumbers.asCode(scalar(file, "cdabr")), "br")) {
-      throw new TsePayloadException("cdabr does not match br", url);
+    if (!sameCode(TseNumbers.asCode(scalar(file, "cdabr")), expectedCdabr)) {
+      throw new TsePayloadException("cdabr does not match " + expectedCdabr, url);
     }
-    return Fetched.of(toResult(file, office), provenance(url, file, res));
+    return Fetched.of(toResult(file, office, areaKey, areaType, stateCode), provenance(url, file, res));
   }
 
-  private AreaResultView toResult(JsonNode file, TseOffice office) {
+  private AreaResultView toResult(
+      JsonNode file, TseOffice office, String areaKey, String areaType, String stateCode) {
     boolean publishable = !"n".equalsIgnoreCase(text(file, "dv"));
     boolean finalResult = "s".equalsIgnoreCase(text(file, "tf"));
     JsonNode carg = null;
@@ -287,9 +356,9 @@ public class TseAdapter2026 {
     CountingProgress progress = toProgress(file);
     return new AreaResultView(
         office.code(),
-        "br",
-        "country",
-        null,
+        areaKey,
+        areaType,
+        stateCode,
         progress,
         new VotesSummary(
             TseNumbers.toLong(scalar(v, "tv")),

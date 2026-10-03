@@ -17,8 +17,29 @@
 
 .progress-block,
 .headline,
-.states-preview {
+.viz {
   margin-bottom: 2rem;
+}
+
+.seg {
+  display: inline-flex;
+  border: 1px solid var(--line);
+  border-radius: 0.45rem;
+  overflow: hidden;
+}
+
+.seg button {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  padding: 0.4rem 0.75rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.seg button.on {
+  background: var(--live-soft);
+  color: var(--ink);
 }
 
 h2 {

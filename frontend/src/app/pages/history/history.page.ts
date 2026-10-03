@@ -1,13 +1,15 @@
 import { Component, OnDestroy, OnInit, effect, inject, signal } from '@angular/core';
 import { Subscription } from 'rxjs';
+import { EvolutionChartComponent } from '../../components/evolution-chart/evolution-chart.component';
 import { ApiService } from '../../core/api.service';
 import { fmtClock, fmtPct } from '../../core/format';
 import { LiveSessionService } from '../../core/live-session.service';
-import { TimelineAtDto, TimelineDto } from '../../core/models';
+import { SeriesDto, TimelineAtDto, TimelineDto } from '../../core/models';
 
 @Component({
   selector: 'app-history-page',
   standalone: true,
+  imports: [EvolutionChartComponent],
   templateUrl: './history.page.html',
   styleUrl: './history.page.scss',
 })
@@ -17,6 +19,7 @@ export class HistoryPage implements OnInit, OnDestroy {
 
   readonly timeline = signal<TimelineDto | null>(null);
   readonly snapshot = signal<TimelineAtDto | null>(null);
+  readonly series = signal<SeriesDto | null>(null);
   readonly index = signal(0);
   readonly playing = signal(false);
   readonly loading = signal(true);
@@ -87,7 +90,8 @@ export class HistoryPage implements OnInit, OnDestroy {
 
   private loadTimeline(): void {
     this.loading.set(true);
-    this.api.timeline(this.live.roundSlug()).subscribe({
+    const slug = this.live.roundSlug();
+    this.api.timeline(slug).subscribe({
       next: (t) => {
         this.timeline.set(t);
         this.loading.set(false);
@@ -101,6 +105,10 @@ export class HistoryPage implements OnInit, OnDestroy {
         this.error.set('Não foi possível carregar o histórico.');
         this.loading.set(false);
       },
+    });
+    this.api.series(slug, 'presidente', 'br').subscribe({
+      next: (s) => this.series.set(s),
+      error: () => this.series.set(null),
     });
   }
 

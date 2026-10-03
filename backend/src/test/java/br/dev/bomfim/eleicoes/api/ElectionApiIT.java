@@ -82,6 +82,18 @@ class ElectionApiIT {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.states").isArray())
         .andExpect(jsonPath("$.states[0].uf").value("SP"));
+
+    mockMvc
+        .perform(get("/api/elections/2026-1/series").param("office", "presidente").param("area", "br"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.areaKey").value("br"))
+        .andExpect(jsonPath("$.points").isArray());
+
+    mockMvc
+        .perform(get("/api/elections/2026-1/states/SP/cities"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.items[0].capital").value(true))
+        .andExpect(jsonPath("$.items[0].code").value("71072"));
   }
 
   @Test

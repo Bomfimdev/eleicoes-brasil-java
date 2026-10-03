@@ -1,0 +1,115 @@
+.map-wrap {
+  margin-bottom: 1.5rem;
+}
+
+.toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 0.5rem;
+}
+
+.seg {
+  display: inline-flex;
+  border: 1px solid var(--line);
+  border-radius: 0.45rem;
+  overflow: hidden;
+}
+
+.seg button {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  padding: 0.4rem 0.7rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.seg button.on {
+  background: var(--live-soft);
+  color: var(--ink);
+}
+
+.canvas {
+  position: relative;
+  border: 1px solid var(--line);
+  border-radius: 0.65rem;
+  background: var(--surface);
+  padding: 0.75rem;
+}
+
+svg {
+  display: block;
+  width: 100%;
+  max-width: 560px;
+  height: auto;
+  margin: 0 auto;
+}
+
+path {
+  stroke: var(--ground);
+  stroke-width: 0.6;
+  cursor: pointer;
+  transition: fill 0.2s ease;
+}
+
+path:focus-visible {
+  outline: 2px solid var(--info);
+  outline-offset: 2px;
+}
+
+.panel {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--line);
+}
+
+.uf {
+  margin: 0;
+  font-weight: 600;
+}
+
+.pct {
+  margin: 0.25rem 0 0;
+  font-size: 1.6rem;
+  font-weight: 650;
+}
+
+.muted {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.leader {
+  margin: 0.35rem 0 0;
+  color: var(--ink-2);
+  font-size: 0.9rem;
+}
+
+a {
+  display: inline-block;
+  margin-top: 0.5rem;
+  color: var(--info);
+  font-size: 0.85rem;
+}
+
+.numeral {
+  font-variant-numeric: tabular-nums;
+}
+
+@media (min-width: 720px) {
+  .canvas {
+    display: grid;
+    grid-template-columns: 1fr 12rem;
+    gap: 1rem;
+    align-items: start;
+  }
+
+  .panel {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: 0;
+    border-left: 1px solid var(--line);
+    padding-left: 1rem;
+  }
+}

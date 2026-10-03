@@ -1,8 +1,10 @@
 @if (live.overview(); as o) {
   <header class="page-head">
-    <h1>{{ o.round.electionName }}</h1>
-    <p class="sub">{{ o.round.round }}º turno · apuração por estado</p>
+    <h1>Estados</h1>
+    <p class="sub">Totalização e líderes por UF</p>
   </header>
+
+  <app-brazil-map [states]="o.states" [allowLeader]="!!o.headline" />
 
   <ul class="states">
     @for (s of o.states; track s.uf) {
@@ -10,18 +12,11 @@
         <a [routerLink]="['/estado', s.uf]">
           <span class="uf">{{ s.uf }}</span>
           <span class="name">{{ s.name }}</span>
-          <span class="meta">
-            @if (s.leaderName) {
-              <span class="leader">{{ s.leaderName }}</span>
-            }
-            <span class="pct">{{ fmtPct(s.progress?.countedPct ?? null, 1) }}</span>
-          </span>
+          <span class="pct">{{ fmtPct(s.progress?.countedPct ?? null, 1) }}</span>
         </a>
       </li>
     }
   </ul>
 } @else if (live.loading()) {
-  <p class="muted">Carregando estados…</p>
-} @else {
-  <p class="muted">Sem dados de estados no momento.</p>
+  <p class="muted pad">Carregando…</p>
 }

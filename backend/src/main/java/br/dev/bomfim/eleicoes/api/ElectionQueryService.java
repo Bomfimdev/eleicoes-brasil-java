@@ -2,6 +2,9 @@ package br.dev.bomfim.eleicoes.api;
 
 import br.dev.bomfim.eleicoes.api.dto.ActivityEventDto;
 import br.dev.bomfim.eleicoes.api.dto.CandidateDto;
+import br.dev.bomfim.eleicoes.api.dto.CityDetailDto;
+import br.dev.bomfim.eleicoes.api.dto.CityPageDto;
+import br.dev.bomfim.eleicoes.api.dto.CityRowDto;
 import br.dev.bomfim.eleicoes.api.dto.CompareDto;
 import br.dev.bomfim.eleicoes.api.dto.ElectionSummaryDto;
 import br.dev.bomfim.eleicoes.api.dto.IngestionDto;
@@ -12,6 +15,7 @@ import br.dev.bomfim.eleicoes.api.dto.ProgressDto;
 import br.dev.bomfim.eleicoes.api.dto.ResultDto;
 import br.dev.bomfim.eleicoes.api.dto.RoundDetailDto;
 import br.dev.bomfim.eleicoes.api.dto.RoundSummaryDto;
+import br.dev.bomfim.eleicoes.api.dto.SeriesDto;
 import br.dev.bomfim.eleicoes.api.dto.StateDetailDto;
 import br.dev.bomfim.eleicoes.api.dto.StateRowDto;
 import br.dev.bomfim.eleicoes.api.dto.TimelineAtDto;
@@ -20,6 +24,8 @@ import br.dev.bomfim.eleicoes.domain.AreaProgress;
 import br.dev.bomfim.eleicoes.domain.AreaProgressRepository;
 import br.dev.bomfim.eleicoes.domain.AreaResult;
 import br.dev.bomfim.eleicoes.domain.AreaResultRepository;
+import br.dev.bomfim.eleicoes.domain.City;
+import br.dev.bomfim.eleicoes.domain.CityRepository;
 import br.dev.bomfim.eleicoes.domain.CollectorCycle;
 import br.dev.bomfim.eleicoes.domain.CollectorCycleRepository;
 import br.dev.bomfim.eleicoes.domain.Election;
@@ -64,6 +70,7 @@ public class ElectionQueryService {
   private final IngestionEventRepository ingestionEventRepository;
   private final ProgressSnapshotRepository progressSnapshotRepository;
   private final ResultSnapshotRepository resultSnapshotRepository;
+  private final CityRepository cityRepository;
   private final JsonMapper mapper;
 
   public ElectionQueryService(
@@ -76,6 +83,7 @@ public class ElectionQueryService {
       IngestionEventRepository ingestionEventRepository,
       ProgressSnapshotRepository progressSnapshotRepository,
       ResultSnapshotRepository resultSnapshotRepository,
+      CityRepository cityRepository,
       JsonMapper mapper) {
     this.electionRepository = electionRepository;
     this.roundRepository = roundRepository;
@@ -86,6 +94,7 @@ public class ElectionQueryService {
     this.ingestionEventRepository = ingestionEventRepository;
     this.progressSnapshotRepository = progressSnapshotRepository;
     this.resultSnapshotRepository = resultSnapshotRepository;
+    this.cityRepository = cityRepository;
     this.mapper = mapper;
   }
 
@@ -427,6 +436,165 @@ public class ElectionQueryService {
               candidates));
     }
     return new CompareDto(office == null ? null : toOffice(office), states);
+  }
+
+  @Transactional(readOnly = true)
+  public CityPageDto cities(String slug, String uf, String q, int page, int pageSize) {
+    LoadedRound loaded = requireRound(slug);
+    BrazilianStates.State meta = BrazilianStates.require(uf);
+    String provider = loaded.round().getProvider() == null ? "TSE" : loaded.round().getProvider();
+    if ("DEMO".equalsIgnoreCase(provider)) {
+      provider = "DEMO";
+    } else {
+      provider = "TSE";
+    }
+    List<City> all = cityRepository.findByProviderAndStateCodeOrderByNameAsc(provider, meta.code());
+    String query = q == null ? "" : q.trim().toLowerCase(Locale.ROOT);
+    List<City> filtered =
+        all.stream()
+            .filter(
+                c ->
+                    query.isEmpty()
+                        || c.getSearchName().contains(query)
+                        || c.getProviderId().contains(query)
+                        || c.getName().toLowerCase(Locale.ROOT).contains(query))
+            .sorted(
+                Comparator.comparing(City::isCapital)
+                    .reversed()
+                    .thenComparing(City::getName, String.CASE_INSENSITIVE_ORDER))
+            .toList();
+    int size = Math.max(1, Math.min(pageSize, 100));
+    int p = Math.max(0, page);
+    int from = Math.min(p * size, filtered.size());
+    int to = Math.min(from + size, filtered.size());
+    Office headline =
+        loaded.offices().stream()
+            .filter(o -> "country".equals(o.getScope()))
+            .findFirst()
+            .orElse(null);
+    List<CityRowDto> items = new ArrayList<>();
+    for (City c : filtered.subList(from, to)) {
+      String areaKey = meta.code().toLowerCase(Locale.ROOT) + "-" + c.getProviderId();
+      ProgressDto progress = progressOf(loaded.round().getId(), areaKey);
+      String leaderName = null;
+      Double leaderPercent = null;
+      if (headline != null) {
+        CandidateDto top =
+            resultRepository
+                .findByRoundIdAndOfficeIdAndAreaKey(loaded.round().getId(), headline.getId(), areaKey)
+                .map(this::topCandidate)
+                .orElse(null);
+        if (top != null) {
+          leaderName = top.ballotName();
+          leaderPercent = top.percent();
+        }
+      }
+      items.add(
+          new CityRowDto(
+              c.getProviderId(),
+              c.getName(),
+              c.isCapital(),
+              c.getIbgeCode(),
+              progress,
+              leaderName,
+              leaderPercent));
+    }
+    return new CityPageDto(items, p, size, filtered.size());
+  }
+
+  @Transactional(readOnly = true)
+  public CityDetailDto city(String slug, String uf, String cityCode) {
+    LoadedRound loaded = requireRound(slug);
+    BrazilianStates.State meta = BrazilianStates.require(uf);
+    String code = cityCode.length() >= 5 ? cityCode : String.format("%5s", cityCode).replace(' ', '0');
+    String provider = "DEMO".equalsIgnoreCase(loaded.round().getProvider()) ? "DEMO" : "TSE";
+    City city =
+        cityRepository
+            .findByProviderAndStateCodeAndProviderId(provider, meta.code(), code)
+            .or(() -> cityRepository.findByProviderAndStateCodeAndProviderId(provider, meta.code(), cityCode))
+            .orElseThrow(() -> new ApiNotFoundException("município não encontrado: " + cityCode));
+    String areaKey = meta.code().toLowerCase(Locale.ROOT) + "-" + city.getProviderId();
+    List<ResultDto> results = new ArrayList<>();
+    for (Office office : loaded.offices()) {
+      resultRepository
+          .findByRoundIdAndOfficeIdAndAreaKey(loaded.round().getId(), office.getId(), areaKey)
+          .ifPresent(row -> results.add(toResult(office, row, city.getName())));
+    }
+    List<String> zones = city.getZones() == null ? List.of() : List.of(city.getZones());
+    return new CityDetailDto(
+        toDetail(loaded),
+        meta.code(),
+        meta.name(),
+        new CityDetailDto.CityInfo(
+            city.getProviderId(), city.getName(), city.isCapital(), city.getIbgeCode(), zones),
+        progressOf(loaded.round().getId(), areaKey),
+        results);
+  }
+
+  @Transactional(readOnly = true)
+  public SeriesDto series(String slug, String officeSlug, String areaKey) {
+    LoadedRound loaded = requireRound(slug);
+    String area = (areaKey == null || areaKey.isBlank()) ? "br" : areaKey.toLowerCase(Locale.ROOT);
+    Office office = resolveOffice(loaded, officeSlug);
+    List<CandidateDto> current =
+        resultRepository
+            .findByRoundIdAndOfficeIdAndAreaKey(loaded.round().getId(), office.getId(), area)
+            .map(row -> toResult(office, row, labelFor(area)).candidates())
+            .orElse(List.of());
+    List<CandidateDto> top =
+        current.stream()
+            .filter(c -> c.votes() != null && c.votes() > 0)
+            .limit(6)
+            .toList();
+    if (top.isEmpty()) {
+      top = current.stream().limit(6).toList();
+    }
+    List<SeriesDto.SeriesCandidateDto> seriesCandidates =
+        top.stream()
+            .map(
+                c ->
+                    new SeriesDto.SeriesCandidateDto(
+                        c.key(),
+                        c.ballotName() != null ? c.ballotName() : c.name(),
+                        c.partyAbbreviation(),
+                        colorFor(c.key())))
+            .toList();
+    List<String> keys = seriesCandidates.stream().map(SeriesDto.SeriesCandidateDto::key).toList();
+    List<ResultSnapshot> snaps =
+        resultSnapshotRepository
+            .findByRoundIdAndOfficeIdAndAreaKeyAndCandidatesIsNotNullOrderByCapturedAtAscIdAsc(
+                loaded.round().getId(), office.getId(), area);
+    List<SeriesDto.SeriesPointDto> points =
+        downsample(snaps, 300).stream()
+            .map(
+                snap -> {
+                  Map<String, Double> values = new LinkedHashMap<>();
+                  for (String key : keys) {
+                    values.put(key, null);
+                  }
+                  JsonNode arr = parseTree(snap.getCandidates());
+                  if (arr.isArray()) {
+                    for (JsonNode c : arr) {
+                      String key = text(c, "key");
+                      if (key != null && values.containsKey(key)) {
+                        values.put(key, doubleOrNull(c, "percent"));
+                      }
+                    }
+                  }
+                  return new SeriesDto.SeriesPointDto(iso(snap.getCapturedAt()), snap.getCountedPct(), values);
+                })
+            .toList();
+    return new SeriesDto(toOffice(office), area, seriesCandidates, points);
+  }
+
+  private static String colorFor(String key) {
+    String[] palette = {
+      "#34c38f", "#58b4e0", "#e8a33d", "#ef5b52", "#9b8cff", "#7dcea0", "#c39bd3", "#76d7c4"
+    };
+    if (key == null || key.isBlank()) {
+      return palette[0];
+    }
+    return palette[Math.floorMod(key.hashCode(), palette.length)];
   }
 
   private List<ActivityEventDto> eventRows(UUID roundId, int limit) {
@@ -775,6 +943,13 @@ public class ElectionQueryService {
     }
     if (BrazilianStates.isValid(area)) {
       return BrazilianStates.require(area).name();
+    }
+    int dash = area == null ? -1 : area.indexOf('-');
+    if (dash > 0) {
+      String uf = area.substring(0, dash);
+      if (BrazilianStates.isValid(uf)) {
+        return BrazilianStates.require(uf).name() + " · " + area.substring(dash + 1);
+      }
     }
     return area;
   }

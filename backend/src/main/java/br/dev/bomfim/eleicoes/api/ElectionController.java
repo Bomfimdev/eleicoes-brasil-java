@@ -141,6 +141,43 @@ public class ElectionController {
     return cached(id, "timeline", request, () -> queries.timeline(id));
   }
 
+  @GetMapping("/elections/{id}/states/{uf}/cities")
+  @Operation(summary = "Lista municípios da UF (capitais e com progresso)")
+  public ResponseEntity<String> cities(
+      @PathVariable("id") String id,
+      @PathVariable("uf") String uf,
+      @RequestParam(value = "q", required = false) String q,
+      @RequestParam(value = "page", required = false, defaultValue = "0") int page,
+      @RequestParam(value = "pageSize", required = false, defaultValue = "40") int pageSize,
+      HttpServletRequest request) {
+    return cached(
+        id,
+        "cities:" + uf + ":" + q + ":" + page + ":" + pageSize,
+        request,
+        () -> queries.cities(id, uf, q, page, pageSize));
+  }
+
+  @GetMapping("/elections/{id}/states/{uf}/cities/{city}")
+  @Operation(summary = "Detalhe do município")
+  public ResponseEntity<String> city(
+      @PathVariable("id") String id,
+      @PathVariable("uf") String uf,
+      @PathVariable("city") String city,
+      HttpServletRequest request) {
+    return cached(id, "city:" + uf + ":" + city, request, () -> queries.city(id, uf, city));
+  }
+
+  @GetMapping("/elections/{id}/series")
+  @Operation(summary = "Série temporal de percentuais por candidato")
+  public ResponseEntity<String> series(
+      @PathVariable("id") String id,
+      @RequestParam("office") String office,
+      @RequestParam(value = "area", required = false, defaultValue = "br") String area,
+      HttpServletRequest request) {
+    return cached(
+        id, "series:" + office + ":" + area, request, () -> queries.series(id, office, area));
+  }
+
   @GetMapping("/elections/{id}/compare")
   @Operation(summary = "Comparar estados lado a lado")
   public ResponseEntity<String> compare(

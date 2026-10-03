@@ -1,7 +1,10 @@
 package br.dev.bomfim.eleicoes.collector;
 
+import br.dev.bomfim.eleicoes.api.BrazilianStates;
 import br.dev.bomfim.eleicoes.api.RealtimeVersionHub;
 import br.dev.bomfim.eleicoes.config.EleicoesProperties;
+import br.dev.bomfim.eleicoes.domain.City;
+import br.dev.bomfim.eleicoes.domain.CityRepository;
 import br.dev.bomfim.eleicoes.domain.CollectorCycle;
 import br.dev.bomfim.eleicoes.domain.ElectionRound;
 import br.dev.bomfim.eleicoes.domain.Office;
@@ -14,11 +17,15 @@ import br.dev.bomfim.eleicoes.tse.model.AreaResultView;
 import br.dev.bomfim.eleicoes.tse.model.CountryProgress;
 import br.dev.bomfim.eleicoes.tse.model.ElectionConfig;
 import br.dev.bomfim.eleicoes.tse.model.Fetched;
+import br.dev.bomfim.eleicoes.tse.model.StateProgress;
 import br.dev.bomfim.eleicoes.tse.model.TseOffice;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
+import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -32,6 +39,7 @@ public class CollectorService {
   private final ElectionWindowGate gate;
   private final CollectorStore store;
   private final OfficeRepository officeRepository;
+  private final CityRepository cityRepository;
   private final TseAdapter2026 adapter;
   private final RealtimeVersionHub versionHub;
   private final ReplayService replayService;
@@ -41,6 +49,7 @@ public class CollectorService {
       ElectionWindowGate gate,
       CollectorStore store,
       OfficeRepository officeRepository,
+      CityRepository cityRepository,
       TseAdapter2026 adapter,
       RealtimeVersionHub versionHub,
       ReplayService replayService) {
@@ -48,6 +57,7 @@ public class CollectorService {
     this.gate = gate;
     this.store = store;
     this.officeRepository = officeRepository;
+    this.cityRepository = cityRepository;
     this.adapter = adapter;
     this.versionHub = versionHub;
     this.replayService = replayService;
@@ -99,9 +109,7 @@ public class CollectorService {
         if (progress.changed()) {
           stats.record(0, "ok");
           List<AreaProgressView> entries = new ArrayList<>();
-          entries.add(
-              new AreaProgressView("br", "country", null, progress.data().progress()));
-          // MVP: UFs do arquivo nacional (sem município)
+          entries.add(new AreaProgressView("br", "country", null, progress.data().progress()));
           entries.addAll(progress.data().states());
           int n = store.applyProgress(round.getId(), entries, progress.provenance(), now);
           if (n > 0) {
@@ -123,21 +131,20 @@ public class CollectorService {
         log.warn("Erro ao buscar progresso BR (mantendo último estado): {}", e.getMessage());
       }
 
-      // MVP: só presidente nacional; sem município
       Optional<TseOffice> presidente =
-          config.offices().stream().filter(o -> "1".equals(o.code()) || "presidente".equals(o.slug())).findFirst();
-      Optional<Office> dbOffice =
-          officeRepository.findByRoundIdAndSlug(round.getId(), "presidente");
+          config.offices().stream()
+              .filter(o -> "1".equals(o.code()) || "presidente".equals(o.slug()))
+              .findFirst();
+      Optional<Office> dbOffice = officeRepository.findByRoundIdAndSlug(round.getId(), "presidente");
 
       if (presidente.isPresent() && dbOffice.isPresent()) {
+        TseOffice tseOffice = presidente.get();
+        Office office = dbOffice.get();
         try {
-          Fetched<AreaResultView> result = adapter.getCountryResult(presidente.get());
+          Fetched<AreaResultView> result = adapter.getCountryResult(tseOffice);
           if (result.changed()) {
             stats.record(0, "ok");
-            boolean stored =
-                store.applyResult(
-                    round.getId(), dbOffice.get(), result.data(), result.provenance(), Instant.now());
-            if (stored) {
+            if (store.applyResult(round.getId(), office, result.data(), result.provenance(), Instant.now())) {
               changed = true;
             }
           } else {
@@ -151,13 +158,88 @@ public class CollectorService {
           degraded = true;
           log.warn("Erro ao buscar resultado BR (mantendo último estado): {}", e.getMessage());
         }
+
+        for (BrazilianStates.State state : BrazilianStates.ALL) {
+          try {
+            Fetched<AreaResultView> stateResult = adapter.getStateResult(tseOffice, state.code());
+            if (stateResult.changed()) {
+              stats.record(0, "ok");
+              if (store.applyResult(
+                  round.getId(), office, stateResult.data(), stateResult.provenance(), Instant.now())) {
+                changed = true;
+              }
+            } else {
+              stats.record(0, "not-modified");
+            }
+          } catch (TseClient.NotFoundException e) {
+            stats.record(0, "not-found");
+          } catch (TseClient.UnavailableException | TsePayloadException e) {
+            stats.record(0, "error");
+            degraded = true;
+            log.debug("Erro resultado UF {}: {}", state.code(), e.getMessage());
+          }
+        }
+
+        if (properties.isCollectCityResults()) {
+          List<City> capitals = cityRepository.findByProviderAndCapitalTrueOrderByStateCodeAsc("TSE");
+          Set<String> capitalKeys = new HashSet<>();
+          for (City c : capitals) {
+            capitalKeys.add(c.getStateCode().toLowerCase(Locale.ROOT) + "-" + c.getProviderId());
+          }
+          Set<String> progressDone = new HashSet<>();
+          for (City capital : capitals) {
+            String uf = capital.getStateCode();
+            if (progressDone.add(uf)) {
+              try {
+                Fetched<StateProgress> sp = adapter.getStateProgress(progressCode, uf);
+                if (sp.changed()) {
+                  stats.record(0, "ok");
+                  List<AreaProgressView> cityProgress =
+                      sp.data().cities().stream()
+                          .filter(p -> capitalKeys.contains(p.areaKey()))
+                          .toList();
+                  if (!cityProgress.isEmpty()) {
+                    int n =
+                        store.applyProgress(
+                            round.getId(), cityProgress, sp.provenance(), Instant.now());
+                    if (n > 0) {
+                      changed = true;
+                    }
+                  }
+                } else {
+                  stats.record(0, "not-modified");
+                }
+              } catch (TseClient.NotFoundException e) {
+                stats.record(0, "not-found");
+              } catch (TseClient.UnavailableException | TsePayloadException e) {
+                stats.record(0, "error");
+                log.debug("Erro progresso cidades {}: {}", uf, e.getMessage());
+              }
+            }
+
+            try {
+              Fetched<AreaResultView> cityResult =
+                  adapter.getCityResult(tseOffice, uf, capital.getProviderId());
+              if (cityResult.changed()) {
+                stats.record(0, "ok");
+                if (store.applyResult(
+                    round.getId(), office, cityResult.data(), cityResult.provenance(), Instant.now())) {
+                  changed = true;
+                }
+              } else {
+                stats.record(0, "not-modified");
+              }
+            } catch (TseClient.NotFoundException e) {
+              stats.record(0, "not-found");
+            } catch (TseClient.UnavailableException | TsePayloadException e) {
+              stats.record(0, "error");
+              log.debug("Erro resultado capital {}-{}: {}", uf, capital.getProviderId(), e.getMessage());
+            }
+          }
+        }
       } else {
         log.warn("Cargo presidente não encontrado no config TSE ou no banco");
         degraded = true;
-      }
-
-      if (properties.isCollectCityResults()) {
-        log.debug("COLLECT_CITY_RESULTS=true ainda não implementado no MVP — ignorado");
       }
 
       status = degraded ? "degraded" : "ok";
