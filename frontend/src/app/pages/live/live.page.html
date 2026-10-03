@@ -1,0 +1,107 @@
+<header class="page-head">
+  <h1>Ao vivo</h1>
+  <p class="sub">
+    Ritmo da apuração e estado da nossa coleta. Este painel não representa os sistemas internos do TSE.
+  </p>
+</header>
+
+@if (data(); as d) {
+  <section class="status-panel" [attr.data-state]="d.ingestion.state">
+    <span class="badge">
+      <span class="dot" [class.pulse-dot]="d.ingestion.state === 'healthy'" aria-hidden="true"></span>
+      Coletor: {{ ingestionMeta().label }}
+    </span>
+    <span class="hint">{{ ingestionMeta().hint }}</span>
+    <span class="meta">
+      Modo {{ d.ingestion.mode ?? '—' }} · último ciclo
+      {{ d.ingestion.lastCycleAt ? 'há ' + ageLabel(d.ingestion.lastCycleAt, now()) : '—' }}
+    </span>
+    @if (d.ingestion.lastError) {
+      <p class="err">{{ d.ingestion.lastError }}</p>
+    }
+  </section>
+
+  <section class="block">
+    <h2>Ritmo da apuração</h2>
+    <p class="sec-sub">Média dos últimos 5 minutos.</p>
+    <dl class="tiles">
+      <div>
+        <dt>Seções / min</dt>
+        <dd class="numeral">{{ fmtInt(Math.round(d.processing.sectionsPerMinute)) }}</dd>
+      </div>
+      <div>
+        <dt>Votos / min</dt>
+        <dd class="numeral">{{ fmtInt(Math.round(d.processing.votesPerMinute)) }}</dd>
+      </div>
+      <div>
+        <dt>Estados / min</dt>
+        <dd class="numeral">{{ d.processing.statesPerMinute.toLocaleString('pt-BR', { maximumFractionDigits: 1 }) }}</dd>
+      </div>
+      <div>
+        <dt>Municípios / min</dt>
+        <dd class="numeral">{{ d.processing.citiesPerMinute.toLocaleString('pt-BR', { maximumFractionDigits: 1 }) }}</dd>
+      </div>
+    </dl>
+  </section>
+
+  <div class="grid-2">
+    <section class="block">
+      <h2>Onde a apuração andou</h2>
+      <p class="sec-sub">Seções por estado (5 min).</p>
+      <ul class="heat">
+        @for (h of heatSorted().slice(0, 12); track h.uf) {
+          <li>
+            <span class="uf">{{ h.uf }}</span>
+            <span class="bar-wrap" aria-hidden="true">
+              <span class="bar" [style.width.%]="heatMax() ? (h.sections / heatMax()) * 100 : 0"></span>
+            </span>
+            <span class="numeral">{{ fmtInt(h.sections) }}</span>
+          </li>
+        }
+      </ul>
+    </section>
+
+    <section class="block">
+      <h2>Atualizações recentes</h2>
+      <ul class="feed">
+        @for (e of d.events.slice(0, 40); track e.id) {
+          <li>
+            <time>{{ fmtClock(e.occurredAt) }}</time>
+            <div>
+              <strong>{{ e.areaName || e.areaKey || e.type }}</strong>
+              <span class="msg">{{ e.message || e.type }}</span>
+              @if (e.countedPct != null) {
+                <span class="pct">{{ e.countedPct.toLocaleString('pt-BR', { maximumFractionDigits: 2 }) }}%</span>
+              }
+            </div>
+          </li>
+        } @empty {
+          <li class="empty">Ainda sem eventos de ingestão.</li>
+        }
+      </ul>
+    </section>
+  </div>
+
+  <section class="block">
+    <h2>Coleta</h2>
+    <p class="sec-sub">Requisições aos arquivos públicos do TSE ({{ d.requests.windowMinutes }} min).</p>
+    <dl class="tiles tiles-6">
+      <div><dt>Requisições</dt><dd class="numeral">{{ fmtInt(d.requests.total) }}</dd></div>
+      <div><dt>HTTP 200</dt><dd class="numeral">{{ fmtInt(d.requests.ok) }}</dd></div>
+      <div><dt>HTTP 304</dt><dd class="numeral">{{ fmtInt(d.requests.notModified) }}</dd></div>
+      <div><dt>Erros</dt><dd class="numeral" [class.bad]="d.requests.errors > 0">{{ fmtInt(d.requests.errors) }}</dd></div>
+      <div>
+        <dt>Latência média</dt>
+        <dd class="numeral">{{ d.requests.avgLatencyMs != null ? Math.round(d.requests.avgLatencyMs) + ' ms' : '—' }}</dd>
+      </div>
+      <div>
+        <dt>p95</dt>
+        <dd class="numeral">{{ d.requests.p95LatencyMs != null ? Math.round(d.requests.p95LatencyMs) + ' ms' : '—' }}</dd>
+      </div>
+    </dl>
+  </section>
+} @else if (error()) {
+  <p class="warn">{{ error() }}</p>
+} @else {
+  <p class="muted">Carregando…</p>
+}

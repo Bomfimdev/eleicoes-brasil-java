@@ -1,6 +1,7 @@
 import { Component, Input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
+/** Placeholder genérico — mantido para seções futuras. */
 @Component({
   selector: 'app-placeholder-page',
   standalone: true,
@@ -11,9 +12,7 @@ import { RouterLink } from '@angular/router';
       <p class="sub">{{ subtitle }}</p>
     </header>
     <div class="card">
-      <p>
-        Esta seção existe no layout (igual ao original), mas o conteúdo completo fica para o pós-MVP.
-      </p>
+      <p>Seção em preparação.</p>
       <a routerLink="/">Voltar à visão geral</a>
     </div>
   `,
@@ -52,27 +51,3 @@ export class PlaceholderPage {
   @Input() title = 'Em breve';
   @Input() subtitle = 'Seção em preparação.';
 }
-
-@Component({
-  selector: 'app-live-page',
-  standalone: true,
-  imports: [PlaceholderPage],
-  template: `<app-placeholder-page title="Ao vivo" subtitle="Feed de operações e ingestão — pós-MVP" />`,
-})
-export class LivePage {}
-
-@Component({
-  selector: 'app-history-page',
-  standalone: true,
-  imports: [PlaceholderPage],
-  template: `<app-placeholder-page title="Histórico" subtitle="Evolução da apuração — pós-MVP" />`,
-})
-export class HistoryPage {}
-
-@Component({
-  selector: 'app-compare-page',
-  standalone: true,
-  imports: [PlaceholderPage],
-  template: `<app-placeholder-page title="Comparar" subtitle="Comparação entre estados — pós-MVP" />`,
-})
-export class ComparePage {}

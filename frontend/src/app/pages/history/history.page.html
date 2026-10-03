@@ -1,0 +1,77 @@
+<header class="page-head">
+  <h1>Histórico da apuração</h1>
+  <p class="sub">Volte a qualquer momento da totalização e veja os números como estavam naquela hora.</p>
+</header>
+
+@if (loading() && !timeline()) {
+  <p class="muted">Carregando…</p>
+} @else if (error()) {
+  <p class="warn">{{ error() }}</p>
+} @else if (points().length < 2) {
+  <div class="empty-card">
+    <p class="title">Ainda não há histórico suficiente.</p>
+    <p>O histórico começa a ser gravado com as primeiras parciais da apuração.</p>
+  </div>
+} @else {
+  <section class="scrubber">
+    <div class="row">
+      <div>
+        <p class="label">Como estava às</p>
+        <p class="big numeral">{{ fmtClock(currentAt()) }}</p>
+      </div>
+      <div class="right">
+        <p class="label">Apuração naquele momento</p>
+        <p class="big numeral">{{ fmtPct(points()[index()].countedPct ?? null) }}</p>
+      </div>
+    </div>
+    <div class="controls">
+      <button type="button" (click)="togglePlay()">{{ playing() ? 'Pausar' : 'Reproduzir' }}</button>
+      <label class="slider">
+        <span class="sr-only">Momento da apuração</span>
+        <input
+          type="range"
+          min="0"
+          [max]="points().length - 1"
+          [value]="index()"
+          (input)="onSlider($any($event.target).value)"
+        />
+      </label>
+    </div>
+    <div class="ends">
+      <span>{{ fmtClock(points()[0].at) }}</span>
+      <span>{{ fmtClock(points()[points().length - 1].at) }}</span>
+    </div>
+  </section>
+
+  @if (snapshot(); as s) {
+    <section class="block">
+      <h2>{{ s.headline?.officeName ?? 'Resultado' }} naquele momento</h2>
+      @if (s.headline?.candidates?.length) {
+        <ol class="candidates">
+          @for (c of s.headline!.candidates.slice(0, 8); track c.key ?? c.number) {
+            <li>
+              <span class="name">{{ c.ballotName || c.name || '—' }}</span>
+              <span class="party">{{ c.partyAbbreviation || '—' }}</span>
+              <span class="numeral">{{ fmtPct(c.percent) }}</span>
+            </li>
+          }
+        </ol>
+      } @else {
+        <p class="muted">Sem candidatos neste instante.</p>
+      }
+    </section>
+
+    <section class="block">
+      <h2>Estados naquele momento</h2>
+      <ul class="states">
+        @for (st of s.states; track st.uf) {
+          <li>
+            <span class="uf">{{ st.uf }}</span>
+            <span class="pct">{{ fmtPct(st.countedPct, 1) }}</span>
+            <span class="leader">{{ st.leaderName || '—' }}</span>
+          </li>
+        }
+      </ul>
+    </section>
+  }
+}

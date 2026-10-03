@@ -1,0 +1,172 @@
+.page-head {
+  margin-bottom: 1.25rem;
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(1.35rem, 2.5vw, 1.75rem);
+  font-weight: 650;
+  letter-spacing: -0.02em;
+}
+
+.sub,
+.muted {
+  margin: 0.35rem 0 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.warn {
+  color: var(--warn);
+}
+
+.empty-card,
+.scrubber {
+  border: 1px solid var(--line);
+  border-radius: 0.65rem;
+  background: var(--surface);
+  padding: 1.1rem 1.15rem;
+}
+
+.empty-card .title {
+  margin: 0 0 0.35rem;
+  font-weight: 600;
+}
+
+.scrubber {
+  margin-bottom: 1.5rem;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.right {
+  text-align: right;
+}
+
+.label {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.big {
+  margin: 0.2rem 0 0;
+  font-size: 2rem;
+  font-weight: 650;
+  line-height: 1.1;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+button {
+  height: 2.5rem;
+  padding: 0 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--line-strong);
+  background: var(--surface-2);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.slider {
+  flex: 1;
+}
+
+input[type='range'] {
+  width: 100%;
+  accent-color: var(--live);
+}
+
+.ends {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.35rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.block {
+  margin-bottom: 1.5rem;
+}
+
+h2 {
+  margin: 0 0 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.candidates,
+.states {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 0.65rem;
+  background: var(--surface);
+}
+
+.candidates li,
+.states li {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.65rem 0.9rem;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.9rem;
+}
+
+.candidates li {
+  grid-template-columns: 1fr auto auto;
+}
+
+.states li {
+  grid-template-columns: 2.5rem 4rem 1fr;
+}
+
+.candidates li:last-child,
+.states li:last-child {
+  border-bottom: 0;
+}
+
+.party,
+.uf,
+.pct {
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+}
+
+.leader {
+  color: var(--ink-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+.numeral {
+  font-variant-numeric: tabular-nums;
+}

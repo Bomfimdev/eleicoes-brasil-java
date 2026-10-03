@@ -1,6 +1,8 @@
 import { Routes } from '@angular/router';
+import { ComparePage } from './pages/compare/compare.page';
+import { HistoryPage } from './pages/history/history.page';
+import { LivePage } from './pages/live/live.page';
 import { NationalPage } from './pages/national/national.page';
-import { ComparePage, HistoryPage, LivePage } from './pages/placeholder/placeholder.page';
 import { StatePage } from './pages/state/state.page';
 import { StatesPage } from './pages/states/states.page';
 

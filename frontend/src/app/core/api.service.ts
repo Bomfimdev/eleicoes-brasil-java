@@ -2,7 +2,16 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { ElectionSummary, OverviewDto, ResultDto, StateDetailDto } from './models';
+import {
+  CompareDto,
+  ElectionSummary,
+  OperationsDto,
+  OverviewDto,
+  ResultDto,
+  StateDetailDto,
+  TimelineAtDto,
+  TimelineDto,
+} from './models';
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
@@ -37,5 +46,28 @@ export class ApiService {
 
   loadArchive(path: string): Observable<OverviewDto> {
     return this.http.get<OverviewDto>(path);
+  }
+
+  operations(roundSlug: string, version?: number): Observable<OperationsDto> {
+    const v = version != null ? `?v=${version}` : '';
+    return this.http.get<OperationsDto>(`${this.base}/api/elections/${roundSlug}/operations${v}`);
+  }
+
+  timeline(roundSlug: string): Observable<TimelineDto> {
+    return this.http.get<TimelineDto>(`${this.base}/api/elections/${roundSlug}/timeline`);
+  }
+
+  timelineAt(roundSlug: string, at: string): Observable<TimelineAtDto> {
+    return this.http.get<TimelineAtDto>(
+      `${this.base}/api/elections/${roundSlug}/timeline?at=${encodeURIComponent(at)}`,
+    );
+  }
+
+  compare(roundSlug: string, states: string[], office?: string): Observable<CompareDto> {
+    const params = new URLSearchParams({ states: states.join(',') });
+    if (office) params.set('office', office);
+    return this.http.get<CompareDto>(
+      `${this.base}/api/elections/${roundSlug}/compare?${params}`,
+    );
   }
 }

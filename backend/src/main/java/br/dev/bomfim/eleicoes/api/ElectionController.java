@@ -113,6 +113,53 @@ public class ElectionController {
         () -> queries.result(id, office, area));
   }
 
+  @GetMapping("/elections/{id}/operations")
+  @Operation(summary = "Painel ao vivo (coleta e ritmo)")
+  public ResponseEntity<String> operations(
+      @PathVariable("id") String id, HttpServletRequest request) {
+    return cached(id, "operations", request, () -> queries.operations(id));
+  }
+
+  @GetMapping("/elections/{id}/events")
+  @Operation(summary = "Eventos recentes de ingestão")
+  public ResponseEntity<String> events(
+      @PathVariable("id") String id,
+      @RequestParam(value = "limit", required = false, defaultValue = "30") int limit,
+      HttpServletRequest request) {
+    return cached(id, "events:" + limit, request, () -> queries.events(id, limit));
+  }
+
+  @GetMapping("/elections/{id}/timeline")
+  @Operation(summary = "Histórico da apuração nacional (ou snapshot em um instante)")
+  public ResponseEntity<String> timeline(
+      @PathVariable("id") String id,
+      @RequestParam(value = "at", required = false) String at,
+      HttpServletRequest request) {
+    if (at != null && !at.isBlank()) {
+      return cached(id, "timeline-at:" + at, request, () -> queries.timelineAt(id, at));
+    }
+    return cached(id, "timeline", request, () -> queries.timeline(id));
+  }
+
+  @GetMapping("/elections/{id}/compare")
+  @Operation(summary = "Comparar estados lado a lado")
+  public ResponseEntity<String> compare(
+      @PathVariable("id") String id,
+      @RequestParam("states") String states,
+      @RequestParam(value = "office", required = false) String office,
+      HttpServletRequest request) {
+    java.util.List<String> ufs =
+        java.util.Arrays.stream(states.split(","))
+            .map(String::trim)
+            .filter(s -> !s.isEmpty())
+            .toList();
+    return cached(
+        id,
+        "compare:" + String.join(",", ufs) + ":" + office,
+        request,
+        () -> queries.compare(id, ufs, office));
+  }
+
   private ResponseEntity<String> cached(
       String roundSlug, String resourceKey, HttpServletRequest request, Supplier<Object> loader) {
     ResponseCache.Entry entry = cache.get(roundSlug, resourceKey);

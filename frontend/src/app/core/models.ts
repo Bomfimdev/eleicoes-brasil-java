@@ -117,3 +117,86 @@ export interface StateDetailDto {
   offices: OfficeDto[];
   ingestion: IngestionDto;
 }
+
+export interface ActivityEventDto {
+  id: string;
+  type: string;
+  occurredAt: string;
+  areaKey: string | null;
+  areaName: string | null;
+  state: string | null;
+  sectionsAdded: number | null;
+  votesAdded: number | null;
+  countedPct: number | null;
+  message: string | null;
+}
+
+export interface OperationsDto {
+  ingestion: IngestionDto;
+  processing: {
+    sectionsPerMinute: number;
+    votesPerMinute: number;
+    statesPerMinute: number;
+    citiesPerMinute: number;
+  };
+  requests: {
+    windowMinutes: number;
+    total: number;
+    ok: number;
+    notModified: number;
+    errors: number;
+    avgLatencyMs: number | null;
+    p95LatencyMs: number | null;
+  };
+  delay: { avgSeconds: number | null; p95Seconds: number | null; samples: number };
+  freshness: { areaKey: string; name: string; updatedAt: string | null; totalizedAt: string | null }[];
+  heat: { uf: string; sections: number; votes: number; updates: number }[];
+  cycles: {
+    id: string;
+    startedAt: string;
+    durationMs: number | null;
+    requests: number;
+    ok: number;
+    notModified: number;
+    errors: number;
+    p95LatencyMs: number | null;
+    status: string;
+  }[];
+  events: ActivityEventDto[];
+}
+
+export interface TimelineDto {
+  start: string | null;
+  end: string | null;
+  points: { at: string; countedPct: number | null }[];
+}
+
+export interface TimelineAtDto {
+  at: string;
+  progress: ProgressDto | null;
+  headline: ResultDto | null;
+  states: {
+    uf: string;
+    countedPct: number | null;
+    leaderName: string | null;
+    leaderParty: string | null;
+    leaderPercent: number | null;
+  }[];
+}
+
+export interface CompareDto {
+  office: OfficeDto | null;
+  states: {
+    uf: string;
+    name: string;
+    progress: ProgressDto | null;
+    votes: Record<string, number | null> | null;
+    candidates: {
+      key: string | null;
+      name: string | null;
+      party: string | null;
+      percent: number | null;
+      votes: number | null;
+    }[];
+  }[];
+}

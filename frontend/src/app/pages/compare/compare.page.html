@@ -1,0 +1,66 @@
+<header class="page-head">
+  <h1>Comparar estados</h1>
+  <p class="sub">Escolha até {{ max }} estados.</p>
+</header>
+
+<fieldset class="chips">
+  <legend class="sr-only">Estados</legend>
+  @for (s of states; track s.code) {
+    <button
+      type="button"
+      [attr.aria-pressed]="isOn(s.code)"
+      [title]="s.name"
+      [disabled]="!isOn(s.code) && selected().length >= max"
+      (click)="toggle(s.code)"
+    >
+      {{ s.code }}
+    </button>
+  }
+</fieldset>
+
+@if (offices().length > 1) {
+  <label class="office">
+    Cargo
+    <select [ngModel]="office()" (ngModelChange)="onOffice($event)">
+      @for (o of offices(); track o.slug) {
+        <option [value]="o.slug">{{ o.name }}</option>
+      }
+    </select>
+  </label>
+}
+
+@if (data(); as d) {
+  <ul class="cards" [class.dim]="loading()">
+    @for (s of d.states; track s.uf) {
+      <li>
+        <p class="head">
+          <span class="name">{{ s.name }}</span>
+          <span class="uf">{{ s.uf }}</span>
+        </p>
+        <p class="big numeral">{{ fmtPct(s.progress?.countedPct ?? null) }}</p>
+        <p class="label">apurado</p>
+        <dl>
+          <div><dt>Comparecimento</dt><dd>{{ fmtInt(s.progress?.turnout ?? null) }}</dd></div>
+          <div><dt>Votos</dt><dd>{{ fmtInt(s.votes?.['total'] ?? s.votes?.['valid'] ?? null) }}</dd></div>
+        </dl>
+        @if (s.candidates.length) {
+          <ol>
+            @for (c of s.candidates.slice(0, 4); track c.key ?? c.name) {
+              <li>
+                <span>{{ c.name || '—' }}</span>
+                <span class="party">{{ c.party || '—' }}</span>
+                <span class="numeral">{{ fmtPct(c.percent) }}</span>
+              </li>
+            }
+          </ol>
+        }
+      </li>
+    }
+  </ul>
+} @else if (selected().length === 0) {
+  <p class="muted">Selecione ao menos um estado.</p>
+} @else if (error()) {
+  <p class="warn">{{ error() }}</p>
+} @else {
+  <p class="muted">Carregando…</p>
+}
