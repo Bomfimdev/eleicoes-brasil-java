@@ -1,0 +1,34 @@
+<p class="back"><a routerLink="/">← Brasil</a></p>
+
+@if (detail(); as d) {
+  <header class="head">
+    <h1>{{ d.uf }} · {{ d.name }}</h1>
+    <p class="pct">{{ fmtPct(d.progress?.countedPct ?? null) }} apurado</p>
+    <p class="meta">Atualizado {{ fmtClock(d.progress?.updatedAt) }}</p>
+  </header>
+
+  <section class="result">
+    <h2>Presidente neste estado</h2>
+    @if (result(); as r) {
+      @if (r.candidates.length === 0) {
+        <p class="empty">Aguardando votos.</p>
+      } @else {
+        <ol>
+          @for (c of r.candidates; track c.key ?? c.number) {
+            <li>
+              <span class="name">{{ c.ballotName || c.name || '—' }}</span>
+              <span>{{ fmtPct(c.percent) }}</span>
+              <span class="muted">{{ fmtInt(c.votes) }}</span>
+            </li>
+          }
+        </ol>
+      }
+    } @else {
+      <p class="empty">Sem resultado estadual de presidente ainda.</p>
+    }
+  </section>
+} @else if (loading()) {
+  <p class="muted">Carregando estado…</p>
+} @else if (error()) {
+  <p class="warn">{{ error() }}</p>
+}

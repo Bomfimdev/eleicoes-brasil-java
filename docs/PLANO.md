@@ -141,14 +141,14 @@ O adapter do TSE vem **cedo** porque é a parte de maior risco.
 
 **Critério de pronto:** Swagger ok; cliente pode polir REST e receber evento SSE em mudança.
 
-### Fase 4 — Angular
+### Fase 4 — Angular ✅
 
-- [ ] Shell mobile-first
-- [ ] Dashboard nacional
-- [ ] Navegação estado (mínimo útil)
-- [ ] HTTP + SSE com warmup, reconnect e indicador de atraso
-- [ ] Estados de UI: aguardando início / ao vivo / encerrado
-- [ ] Fallback para snapshot estático (modo arquivado)
+- [x] Shell mobile-first
+- [x] Dashboard nacional
+- [x] Navegação estado (mínimo útil)
+- [x] HTTP + SSE com warmup, reconnect e indicador de atraso
+- [x] Estados de UI: aguardando início / ao vivo / encerrado
+- [x] Fallback para snapshot estático (modo arquivado)
 
 **Critério de pronto:** UI nacional atualiza sozinha (demo e, quando disponível, TSE).
 

@@ -1,0 +1,74 @@
+@if (live.overview(); as o) {
+  <section class="hero-status" [attr.data-phase]="live.phase()">
+    <div class="phase">
+      <span class="dot" aria-hidden="true"></span>
+      <strong>{{ phaseLabel() }}</strong>
+      @if (live.lagLabel(); as lag) {
+        <span class="lag">última ok há {{ lag }}</span>
+      }
+    </div>
+    <p class="election">{{ o.round.electionName }} · {{ o.round.round }}º turno</p>
+    @if (o.round.demo) {
+      <p class="demo-tag">Dados DEMO — fictícios, não oficiais</p>
+    }
+  </section>
+
+  <section class="progress-block">
+    <h2>Apuração Brasil</h2>
+    <div class="bar" role="progressbar"
+      [attr.aria-valuenow]="o.progress?.countedPct ?? null"
+      aria-valuemin="0" aria-valuemax="100">
+      <div class="fill" [style.width.%]="o.progress?.countedPct ?? 0"></div>
+    </div>
+    <p class="pct">{{ fmtPct(o.progress?.countedPct ?? null) }} das seções</p>
+    <p class="meta">
+      Comparecimento {{ fmtInt(o.progress?.turnout ?? null) }}
+      · atualizado {{ fmtClock(o.progress?.updatedAt ?? o.ingestion.lastSuccessAt) }}
+    </p>
+  </section>
+
+  <section class="headline">
+    <h2>{{ o.headline?.officeName ?? 'Presidente' }}</h2>
+    @if (o.headline; as h) {
+      @if (h.candidates.length === 0) {
+        <p class="empty">Aguardando divulgação de votos.</p>
+      } @else {
+        <ol class="candidates">
+          @for (c of h.candidates; track c.key ?? c.number) {
+            <li>
+              <div class="row">
+                <span class="name">{{ c.ballotName || c.name || '—' }}</span>
+                <span class="party">{{ c.partyAbbreviation || '—' }}</span>
+              </div>
+              <div class="row nums">
+                <span>{{ fmtPct(c.percent) }}</span>
+                <span class="muted">{{ fmtInt(c.votes) }} votos</span>
+              </div>
+            </li>
+          }
+        </ol>
+      }
+    } @else {
+      <p class="empty">Sem resultado nacional ainda.</p>
+    }
+  </section>
+
+  <section class="states">
+    <h2>Estados</h2>
+    <ul>
+      @for (s of o.states; track s.uf) {
+        <li>
+          <a [routerLink]="['/estado', s.uf]">
+            <span class="uf">{{ s.uf }}</span>
+            <span class="sname">{{ s.name }}</span>
+            <span class="spct">{{ fmtPct(s.progress?.countedPct ?? null, 1) }}</span>
+          </a>
+        </li>
+      }
+    </ul>
+  </section>
+} @else if (live.loading()) {
+  <p class="muted pad">Carregando apuração…</p>
+} @else if (live.error()) {
+  <p class="warn pad">{{ live.error() }}</p>
+}

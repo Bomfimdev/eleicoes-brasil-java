@@ -1,51 +1,98 @@
-:host {
-  display: block;
-  min-height: 100vh;
-  background:
-    radial-gradient(circle at top left, #1f3b2c 0%, transparent 40%),
-    linear-gradient(160deg, #0f1410 0%, #182019 45%, #101412 100%);
-  color: #eef3ee;
-  font-family: "Segoe UI", "Helvetica Neue", sans-serif;
-}
-
-.shell {
-  max-width: 720px;
+.app {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  max-width: 40rem;
   margin: 0 auto;
-  padding: 4rem 1.5rem;
+  padding: 1rem 1.1rem 2rem;
 }
 
-.eyebrow {
-  margin: 0 0 0.5rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  font-size: 0.75rem;
-  color: #9bb7a5;
+.top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.9rem;
+  border-bottom: 1px solid #1e2823;
 }
 
-h1 {
-  margin: 0;
-  font-size: clamp(2rem, 6vw, 3.2rem);
-  line-height: 1.1;
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  color: inherit;
+  text-decoration: none;
+}
+
+.brand-mark {
+  display: grid;
+  place-items: center;
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: 0.55rem;
+  background: #1a2e24;
+  color: #3ecf8e;
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
   font-weight: 700;
+  font-size: 0.85rem;
 }
 
-.lead {
-  margin: 1rem 0 0;
-  max-width: 36rem;
-  color: #c5d4cb;
+.brand-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+
+.brand-text strong {
   font-size: 1.05rem;
 }
 
-.status {
+.brand-text small {
+  color: #8a9a93;
+  font-size: 0.75rem;
+}
+
+.pill {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  padding: 0.35rem 0.55rem;
+  border-radius: 0.35rem;
+  background: #1c2420;
+  color: #a8b5ae;
+}
+
+.pill[data-phase='ao_vivo'] {
+  background: rgba(62, 207, 142, 0.12);
+  color: #3ecf8e;
+}
+
+.pill[data-phase='atrasado'] {
+  background: rgba(230, 184, 77, 0.12);
+  color: #e6b84d;
+}
+
+.pill[data-phase='encerrado'] {
+  background: rgba(138, 160, 178, 0.15);
+  color: #8aa0b2;
+}
+
+.content {
+  flex: 1;
+}
+
+.foot {
   margin-top: 2.5rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  padding-top: 1rem;
+  border-top: 1px solid #1e2823;
+  color: #6f7d76;
+  font-size: 0.8rem;
+  line-height: 1.45;
 }
 
-.muted {
-  color: #8fa396;
-}
-
-.warn {
-  color: #f0c27a;
+.foot-warn {
+  color: #e6b84d;
+  margin-top: 0.5rem;
 }

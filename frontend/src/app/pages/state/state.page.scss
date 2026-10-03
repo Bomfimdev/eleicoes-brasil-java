@@ -1,0 +1,60 @@
+.back {
+  margin: 0 0 1rem;
+}
+
+.back a {
+  color: #8a9a93;
+  text-decoration: none;
+}
+
+.back a:hover {
+  color: #3ecf8e;
+}
+
+.head h1 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.pct {
+  margin: 0.5rem 0 0.2rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.meta,
+.muted,
+.empty {
+  color: #8a9a93;
+}
+
+h2 {
+  margin: 1.5rem 0 0.75rem;
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: #a8b5ae;
+}
+
+ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+li {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 0.75rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #1e2823;
+  font-variant-numeric: tabular-nums;
+}
+
+.name {
+  font-weight: 600;
+}
+
+.warn {
+  color: #e6b84d;
+}

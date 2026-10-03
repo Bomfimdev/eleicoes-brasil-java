@@ -100,4 +100,4 @@ Fonte detalhada: `docs/PLANO.md` (escopo fechado).
 
 ## Próximo passo imediato
 
-**Fase 4 — Angular** (ver `docs/PLANO.md`). Fases 0–3 concluídas (collector + REST/SSE/Swagger).
+**Fase 5 — Deploy e operação** (ver `docs/PLANO.md`). Fases 0–4 concluídas.

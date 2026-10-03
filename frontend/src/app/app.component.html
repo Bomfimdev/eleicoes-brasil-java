@@ -1,18 +1,36 @@
-<main class="shell">
-  <header>
-    <p class="eyebrow">Bomfimdev</p>
-    <h1>{{ title }}</h1>
-    <p class="lead">Apuração em tempo real com dados públicos do TSE — stack Java / Angular.</p>
+<div class="app">
+  <header class="top">
+    <a routerLink="/" class="brand">
+      <span class="brand-mark">EB</span>
+      <span class="brand-text">
+        <strong>{{ title }}</strong>
+        <small>Apuração · TSE</small>
+      </span>
+    </a>
+    @if (live.phase(); as phase) {
+      <span class="pill" [attr.data-phase]="phase">
+        @switch (phase) {
+          @case ('ao_vivo') { Ao vivo }
+          @case ('encerrado') { Encerrado }
+          @case ('atrasado') { Atrasado }
+          @case ('offline') { Offline }
+          @default { Aguardando }
+        }
+      </span>
+    }
   </header>
 
-  <section class="status" aria-live="polite">
-    @if (health(); as h) {
-      <p><strong>API:</strong> {{ h.status }} · {{ h.service }} · modo {{ h.mode }}</p>
-      <p class="muted">{{ h.timestamp }}</p>
-    } @else if (error()) {
-      <p class="warn">{{ error() }}</p>
-    } @else {
-      <p class="muted">Checando API…</p>
+  <main class="content">
+    <router-outlet />
+  </main>
+
+  <footer class="foot">
+    <p>
+      Projeto independente — <strong>não é</strong> serviço oficial da Justiça Eleitoral.
+      Fonte: dados públicos do TSE.
+    </p>
+    @if (live.error(); as err) {
+      <p class="foot-warn">{{ err }}</p>
     }
-  </section>
-</main>
+  </footer>
+</div>
