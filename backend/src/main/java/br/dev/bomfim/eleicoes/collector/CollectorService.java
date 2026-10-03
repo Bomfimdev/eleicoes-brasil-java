@@ -1,5 +1,6 @@
 package br.dev.bomfim.eleicoes.collector;
 
+import br.dev.bomfim.eleicoes.api.RealtimeVersionHub;
 import br.dev.bomfim.eleicoes.config.EleicoesProperties;
 import br.dev.bomfim.eleicoes.domain.CollectorCycle;
 import br.dev.bomfim.eleicoes.domain.ElectionRound;
@@ -32,18 +33,21 @@ public class CollectorService {
   private final CollectorStore store;
   private final OfficeRepository officeRepository;
   private final TseAdapter2026 adapter;
+  private final RealtimeVersionHub versionHub;
 
   public CollectorService(
       EleicoesProperties properties,
       ElectionWindowGate gate,
       CollectorStore store,
       OfficeRepository officeRepository,
-      TseAdapter2026 adapter) {
+      TseAdapter2026 adapter,
+      RealtimeVersionHub versionHub) {
     this.properties = properties;
     this.gate = gate;
     this.store = store;
     this.officeRepository = officeRepository;
     this.adapter = adapter;
+    this.versionHub = versionHub;
   }
 
   /** @return status do ciclo: skipped, ok, degraded, failed, waiting */
@@ -68,6 +72,7 @@ public class CollectorService {
     boolean degraded = false;
     String fatal = null;
     String status = "ok";
+    boolean changed = false;
 
     try {
       ElectionConfig config;
@@ -92,7 +97,10 @@ public class CollectorService {
               new AreaProgressView("br", "country", null, progress.data().progress()));
           // MVP: UFs do arquivo nacional (sem município)
           entries.addAll(progress.data().states());
-          store.applyProgress(round.getId(), entries, progress.provenance(), now);
+          int n = store.applyProgress(round.getId(), entries, progress.provenance(), now);
+          if (n > 0) {
+            changed = true;
+          }
           String st = progress.data().progress().status();
           if (!"not-started".equals(st)) {
             store.setRoundStatus(round, "finished".equals(st) ? "final" : "live");
@@ -120,7 +128,12 @@ public class CollectorService {
           Fetched<AreaResultView> result = adapter.getCountryResult(presidente.get());
           if (result.changed()) {
             stats.record(0, "ok");
-            store.applyResult(round.getId(), dbOffice.get(), result.data(), result.provenance(), Instant.now());
+            boolean stored =
+                store.applyResult(
+                    round.getId(), dbOffice.get(), result.data(), result.provenance(), Instant.now());
+            if (stored) {
+              changed = true;
+            }
           } else {
             stats.record(0, "not-modified");
           }
@@ -143,6 +156,9 @@ public class CollectorService {
 
       status = degraded ? "degraded" : "ok";
       store.finishCycle(cycle, status, null, stats);
+      if (changed) {
+        versionHub.publish(round.getSlug());
+      }
       return status;
     } catch (Exception e) {
       fatal = e.getMessage();

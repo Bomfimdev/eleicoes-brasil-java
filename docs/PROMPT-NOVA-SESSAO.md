@@ -39,9 +39,9 @@ Decisões travadas (resumo):
 - Sem Oracle/always-on 24h: não é necessário
 - Fora do MVP: mapa, histórico avançado, mobile, auth, WebSocket
 
-Estado atual: **Fase 2 concluída** (collector + `TseAdapter2026` + fixtures classpath + janelas + rate limit/ETag). Online: API Render + Pages + Neon.
+Estado atual: **Fase 3 concluída** (REST nacional/UF, cache 15s, SSE versão, Swagger). Online: API Render + Pages + Neon.
 
-Próximo passo: **Fase 3 — API REST + SSE** (read-only nacional, cache curto, evento de versão via SSE, Swagger). Não pular para mapa/histórico.
+Próximo passo: **Fase 4 — Angular** (dashboard nacional mobile-first, HTTP + SSE com reconnect, estados aguardando/ao vivo/encerrado). Não pular para mapa/histórico.
 
 Responda em português, simples e direto. Commits só se eu pedir.
 

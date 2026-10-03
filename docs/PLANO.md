@@ -130,14 +130,14 @@ O adapter do TSE vem **cedo** porque é a parte de maior risco.
 
 **Critério de pronto:** ciclo demo grava progresso/resultados sem TSE real **e** o adapter lê um JSON real do TSE (simulado ou oficial) e passa na validação.
 
-### Fase 3 — API REST + SSE
+### Fase 3 — API REST + SSE ✅
 
-- [ ] REST read-only (país, UF, cargos)
-- [ ] `Cache-Control` curto + cache em memória com invalidação simples
-- [ ] SSE `GET /api/realtime/elections/{roundId}` enviando só o evento de versão
-- [ ] `/api/health` (sem banco) e `/api/ready` (com banco)
-- [ ] CORS restrito, limite de conexões SSE por IP
-- [ ] springdoc / Swagger
+- [x] REST read-only (país, UF, cargos)
+- [x] `Cache-Control` curto + cache em memória com invalidação simples
+- [x] SSE `GET /api/realtime/elections/{id}` enviando só o evento de versão (slug do turno)
+- [x] `/api/health` (sem banco) e `/api/ready` (com banco)
+- [x] CORS restrito, limite de conexões SSE por IP
+- [x] springdoc / Swagger (`/swagger-ui.html`, `/api-docs`)
 
 **Critério de pronto:** Swagger ok; cliente pode polir REST e receber evento SSE em mudança.
 

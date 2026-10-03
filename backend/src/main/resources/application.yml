@@ -39,6 +39,10 @@ eleicoes:
   cors-origins: ${CORS_ORIGINS:http://localhost:4200}
   election-windows: ${ELECTION_WINDOWS:2026-10-04T17:00-03:00/2026-10-05T22:00-03:00,2026-10-25T17:00-03:00/2026-10-26T22:00-03:00}
   collect-city-results: ${COLLECT_CITY_RESULTS:false}
+  api:
+    cache-ttl-seconds: ${API_CACHE_TTL_SECONDS:15}
+  sse:
+    max-connections-per-ip: ${SSE_MAX_CONNECTIONS_PER_IP:5}
   collector:
     enabled: ${COLLECTOR_ENABLED:true}
     # Em DEVELOPMENT local, ignora janelas para o ciclo demo gravar fora de J1/J2.
@@ -51,3 +55,9 @@ eleicoes:
     poll-interval-ms: ${TSE_POLL_INTERVAL_MS:15000}
     requests-per-second: ${TSE_REQUESTS_PER_SECOND:20}
     fixtures-path: ${TSE_FIXTURES_PATH:fixtures/tse}
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html

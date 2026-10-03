@@ -11,6 +11,8 @@ public class EleicoesProperties {
   private boolean collectCityResults = false;
   private final Collector collector = new Collector();
   private final Tse tse = new Tse();
+  private final Api api = new Api();
+  private final Sse sse = new Sse();
 
   public String getAppMode() {
     return appMode;
@@ -50,6 +52,38 @@ public class EleicoesProperties {
 
   public Tse getTse() {
     return tse;
+  }
+
+  public Api getApi() {
+    return api;
+  }
+
+  public Sse getSse() {
+    return sse;
+  }
+
+  public static class Api {
+    private int cacheTtlSeconds = 15;
+
+    public int getCacheTtlSeconds() {
+      return cacheTtlSeconds;
+    }
+
+    public void setCacheTtlSeconds(int cacheTtlSeconds) {
+      this.cacheTtlSeconds = cacheTtlSeconds;
+    }
+  }
+
+  public static class Sse {
+    private int maxConnectionsPerIp = 5;
+
+    public int getMaxConnectionsPerIp() {
+      return maxConnectionsPerIp;
+    }
+
+    public void setMaxConnectionsPerIp(int maxConnectionsPerIp) {
+      this.maxConnectionsPerIp = maxConnectionsPerIp;
+    }
   }
 
   public static class Collector {
