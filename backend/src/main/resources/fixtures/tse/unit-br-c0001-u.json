@@ -1,0 +1,123 @@
+{
+  "ele": "21270",
+  "t": "1",
+  "f": "s",
+  "sup": "n",
+  "tpabr": "br",
+  "cdabr": "br",
+  "dg": "04/10/2026",
+  "hg": "20:43:15",
+  "idg": "5003",
+  "dv": "s",
+  "dt": "04/10/2026",
+  "ht": "20:43:10",
+  "tf": "n",
+  "and": "p",
+  "md": "n",
+  "esae": "n",
+  "mnae": [],
+  "carg": [
+    {
+      "cd": "1",
+      "nmn": "Presidente",
+      "nmm": "Presidente",
+      "nmf": "Presidenta",
+      "nv": "1",
+      "fed": [{ "n": "901", "nm": "Federação Exemplo", "sg": "FEX", "com": "PEX/PMD", "npar": ["91", "92"] }],
+      "agr": [
+        {
+          "n": "9101",
+          "nm": "Coligação Exemplo",
+          "tp": "c",
+          "com": "PEX/PMD",
+          "tvtn": "52381292",
+          "tvan": "52381292",
+          "par": [
+            {
+              "n": "91",
+              "sg": "PEX",
+              "nm": "Partido Exemplo",
+              "nfed": "901",
+              "tvtn": "52381292",
+              "tvan": "52381292",
+              "cand": [
+                {
+                  "n": "91",
+                  "sqcand": "280001",
+                  "nm": "ANA EXEMPLO DA SILVA",
+                  "nmu": "ANA EXEMPLO",
+                  "dt": "01/01/1970",
+                  "dvt": "Válido",
+                  "seq": "1",
+                  "e": "n",
+                  "st": "",
+                  "vap": "52381292",
+                  "pvap": "48,32",
+                  "pvapn": "48.321234567",
+                  "vs": [{ "tp": "v", "sqcand": "280002", "nm": "VICE EXEMPLO", "nmu": "VICE", "sgp": "PMD" }]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "n": "92",
+          "nm": "Partido Modelo",
+          "tp": "i",
+          "par": [
+            {
+              "n": "92",
+              "sg": "PMD**",
+              "nm": "Partido Modelo",
+              "tvtn": "49700000",
+              "cand": [
+                {
+                  "n": "92",
+                  "sqcand": "280003",
+                  "nm": "BRUNO MODELO",
+                  "nmu": "BRUNO MODELO",
+                  "dvt": "Válido",
+                  "seq": "2",
+                  "e": "n",
+                  "vap": "49700000",
+                  "pvap": "45,84",
+                  "pvapn": 45.84,
+                  "vs": []
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "s": {
+    "ts": "475921",
+    "st": "391842",
+    "pst": "82,33",
+    "pstn": "82.333450000",
+    "snt": "84079",
+    "si": "391800",
+    "sni": "42"
+  },
+  "e": {
+    "te": "158000000",
+    "est": "130000000",
+    "c": "103000000",
+    "pcn": "79.237000000",
+    "a": "26990000",
+    "pan": "20.763000000"
+  },
+  "v": {
+    "tv": "103000000",
+    "vvc": "102081292",
+    "vv": "102081292",
+    "vnom": "102081292",
+    "van": "0",
+    "vansj": "0",
+    "vb": "400000",
+    "tvn": "518708",
+    "vn": "500000",
+    "vnt": "18708"
+  }
+}

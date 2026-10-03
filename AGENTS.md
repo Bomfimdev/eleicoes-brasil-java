@@ -100,4 +100,4 @@ Fonte detalhada: `docs/PLANO.md` (escopo fechado).
 
 ## Próximo passo imediato
 
-Seguir a fase atual em `docs/PLANO.md`.
+**Fase 3 — API REST + SSE** (ver `docs/PLANO.md`). Fase 2 (collector + adapter) concluída.

@@ -1,11 +1,4 @@
-spring:
-  jpa:
-    hibernate:
-      ddl-auto: validate
-  liquibase:
-    enabled: true
-    change-log: classpath:db/changelog/db.changelog-master.xml
-
 eleicoes:
-  app-mode: DEVELOPMENT
-  cors-origins: http://localhost:4200
+  collector:
+    enabled: false
+    ignore-windows: true

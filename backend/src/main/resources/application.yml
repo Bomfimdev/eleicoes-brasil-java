@@ -38,3 +38,16 @@ eleicoes:
   app-mode: ${APP_MODE:DEVELOPMENT}
   cors-origins: ${CORS_ORIGINS:http://localhost:4200}
   election-windows: ${ELECTION_WINDOWS:2026-10-04T17:00-03:00/2026-10-05T22:00-03:00,2026-10-25T17:00-03:00/2026-10-26T22:00-03:00}
+  collect-city-results: ${COLLECT_CITY_RESULTS:false}
+  collector:
+    enabled: ${COLLECTOR_ENABLED:true}
+    # Em DEVELOPMENT local, ignora janelas para o ciclo demo gravar fora de J1/J2.
+    ignore-windows: ${COLLECTOR_IGNORE_WINDOWS:true}
+    round-slug: ${COLLECTOR_ROUND_SLUG:demo-1}
+  tse:
+    base-url: ${TSE_BASE_URL:}
+    environment: ${TSE_ENVIRONMENT:}
+    provider-round-id: ${TSE_PROVIDER_ROUND_ID:}
+    poll-interval-ms: ${TSE_POLL_INTERVAL_MS:15000}
+    requests-per-second: ${TSE_REQUESTS_PER_SECOND:20}
+    fixtures-path: ${TSE_FIXTURES_PATH:fixtures/tse}

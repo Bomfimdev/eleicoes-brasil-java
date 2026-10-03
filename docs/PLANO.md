@@ -114,19 +114,19 @@ Regras de operação:
 
 **Critério de pronto:** app sobe, Liquibase aplica, seed visível no banco.
 
-### Fase 2 — Collector + adapter TSE
+### Fase 2 — Collector + adapter TSE ✅
 
 O adapter do TSE vem **cedo** porque é a parte de maior risco.
 
-- [ ] Fixtures locais formato TSE (pasta `fixtures/`)
-- [ ] Polling em modo `DEVELOPMENT`
-- [ ] `TseAdapter2026`: URLs a partir do `ele-c.json`, validação dos schemas, conversão de números/horários
-- [ ] Rate limit + ETag/304 (`TSE_REQUESTS_PER_SECOND`, `TSE_POLL_INTERVAL=15`)
-- [ ] Modos `SIMULATION` / `PRODUCTION` (além de `DEVELOPMENT`)
-- [ ] Gate das janelas (`ELECTION_WINDOWS`): fora da janela o ciclo é no-op
-- [ ] Persistir `area_progress` / `area_results` + eventos de ingestão
-- [ ] Em erro: manter último estado bom
-- [ ] `COLLECT_CITY_RESULTS=false` por padrão; snapshot só se mudou
+- [x] Fixtures locais formato TSE (`backend/src/main/resources/fixtures/tse/`)
+- [x] Polling em modo `DEVELOPMENT` (`ClasspathTseClient` + scheduler)
+- [x] `TseAdapter2026`: URLs a partir do `ele-c.json`, validação dos schemas, conversão de números/horários
+- [x] Rate limit + ETag/304 (`TSE_REQUESTS_PER_SECOND`, `TSE_POLL_INTERVAL_MS=15000`)
+- [x] Modos `SIMULATION` / `PRODUCTION` (além de `DEVELOPMENT`)
+- [x] Gate das janelas (`ELECTION_WINDOWS`): fora da janela o ciclo é no-op
+- [x] Persistir `area_progress` / `area_results` + eventos de ingestão
+- [x] Em erro: manter último estado bom
+- [x] `COLLECT_CITY_RESULTS=false` por padrão; snapshot só se mudou
 
 **Critério de pronto:** ciclo demo grava progresso/resultados sem TSE real **e** o adapter lê um JSON real do TSE (simulado ou oficial) e passa na validação.
 

@@ -1,0 +1,58 @@
+{
+  "dg": "28/09/2026",
+  "hg": "15:00:00",
+  "idg": "101",
+  "f": "s",
+  "arq": [
+    { "tp": "u", "dir": "<base>/<ambiente>/<ciclo>/<cd_eleicao>/dados/<uf>" },
+    { "tp": "ab", "dir": "<base>/<ambiente>/<ciclo>/<cd_eleicao>/dados/<uf>" },
+    { "tp": "cm", "dir": "<base>/<ambiente>/<ciclo>/<cd_eleicao>/config" },
+    { "tp": "x", "dir": "https://evil.example/<uf>" }
+  ],
+  "pl": [
+    {
+      "cd": "17801",
+      "cdpr": "1",
+      "c": "ele2026",
+      "dt": "04/10/2026",
+      "dtlim": "31/12/2026",
+      "e": [
+        {
+          "cd": "21270",
+          "sqele": "1",
+          "nm": "Eleição Ordinária Federal",
+          "t": "1",
+          "tp": "8",
+          "abr": [{ "cd": "br", "cp": [{ "cd": "1", "ds": "Presidente", "tp": "1" }] }]
+        },
+        {
+          "cd": "21272",
+          "sqele": "2",
+          "nm": "Eleição Ordinária Estadual",
+          "t": "1",
+          "tp": "1",
+          "abr": [
+            {
+              "cd": "br",
+              "cp": [
+                { "cd": "3", "ds": "Governador", "tp": "1" },
+                { "cd": "5", "ds": "Senador", "tp": "1" },
+                { "cd": "6", "ds": "Deputado Federal", "tp": "2" },
+                { "cd": "7", "ds": "Deputado Estadual", "tp": "2" },
+                { "cd": "8", "ds": "Deputado Distrital", "tp": "2" }
+              ]
+            }
+          ]
+        },
+        {
+          "cd": "21274",
+          "sqele": "3",
+          "nm": "Eleição Conselho Distrital",
+          "t": "1",
+          "tp": "3",
+          "abr": [{ "cd": "pe", "cp": [{ "cd": "15", "ds": "Conselheiro Distrital", "tp": "2" }] }]
+        }
+      ]
+    }
+  ]
+}

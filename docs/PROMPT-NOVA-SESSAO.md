@@ -39,9 +39,9 @@ Decisões travadas (resumo):
 - Sem Oracle/always-on 24h: não é necessário
 - Fora do MVP: mapa, histórico avançado, mobile, auth, WebSocket
 
-Estado atual: **Fase 1 concluída** (domínio + Liquibase + repos + seed demo + roles migrator/app + `/api/ready`).
+Estado atual: **Fase 2 concluída** (collector + `TseAdapter2026` + fixtures classpath + janelas + rate limit/ETag). Online: API Render + Pages + Neon.
 
-Próximo passo: **Fase 2 — Collector + adapter TSE** (fixtures, janelas `ELECTION_WINDOWS`, rate limit, modes). Não pular fase. Não fazer deploy ainda, exceto o slice mínimo de J1 depois da parte nacional das Fases 3–4, se der tempo.
+Próximo passo: **Fase 3 — API REST + SSE** (read-only nacional, cache curto, evento de versão via SSE, Swagger). Não pular para mapa/histórico.
 
 Responda em português, simples e direto. Commits só se eu pedir.
 

@@ -30,6 +30,7 @@ class EleicoesApiApplicationTests {
     registry.add("spring.datasource.password", postgres::getPassword);
     registry.add("spring.liquibase.user", postgres::getUsername);
     registry.add("spring.liquibase.password", postgres::getPassword);
+    registry.add("eleicoes.collector.enabled", () -> "false");
   }
 
   @Autowired

@@ -5,6 +5,11 @@ spring:
   jpa:
     show-sql: false
 
+eleicoes:
+  collector:
+    # Em produção respeita ELECTION_WINDOWS (no-op fora da janela).
+    ignore-windows: ${COLLECTOR_IGNORE_WINDOWS:false}
+
 logging:
   level:
     root: INFO
