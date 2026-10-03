@@ -40,8 +40,8 @@
                 '2026-v1',
                 'oficial',
                 'PRODUCTION',
-                NULL,
-                NULL,
+                '21270',
+                ARRAY['21270', '21272'],
                 NOW(),
                 NOW()
             ),
@@ -58,8 +58,8 @@
                 '2026-v1',
                 'oficial',
                 'PRODUCTION',
-                NULL,
-                NULL,
+                '21271',
+                ARRAY['21271', '21273'],
                 NOW(),
                 NOW()
             );
@@ -71,13 +71,13 @@
             (
                 'cccccccc-cccc-cccc-cccc-cccccccccc01',
                 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb1',
-                'TSE', '1', NULL,
+                'TSE', '1', '21270',
                 'presidente', 'Presidente', 'majoritarian', 'country', NULL
             ),
             (
                 'cccccccc-cccc-cccc-cccc-cccccccccc02',
                 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb1',
-                'TSE', '3', NULL,
+                'TSE', '3', '21272',
                 'governador', 'Governador', 'majoritarian', 'state', NULL
             );
 
