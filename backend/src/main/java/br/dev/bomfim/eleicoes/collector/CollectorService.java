@@ -34,6 +34,7 @@ public class CollectorService {
   private final OfficeRepository officeRepository;
   private final TseAdapter2026 adapter;
   private final RealtimeVersionHub versionHub;
+  private final ReplayService replayService;
 
   public CollectorService(
       EleicoesProperties properties,
@@ -41,19 +42,25 @@ public class CollectorService {
       CollectorStore store,
       OfficeRepository officeRepository,
       TseAdapter2026 adapter,
-      RealtimeVersionHub versionHub) {
+      RealtimeVersionHub versionHub,
+      ReplayService replayService) {
     this.properties = properties;
     this.gate = gate;
     this.store = store;
     this.officeRepository = officeRepository;
     this.adapter = adapter;
     this.versionHub = versionHub;
+    this.replayService = replayService;
   }
 
-  /** @return status do ciclo: skipped, ok, degraded, failed, waiting */
+  /** @return status do ciclo: skipped, ok, degraded, failed, waiting, finished */
   public String runCycle() {
     if (!properties.getCollector().isEnabled()) {
       return "skipped";
+    }
+    String mode = properties.getAppMode() == null ? "DEVELOPMENT" : properties.getAppMode().toUpperCase();
+    if ("REPLAY".equals(mode)) {
+      return replayService.runTick();
     }
     if (!gate.isOpen()) {
       log.debug("Collector fora da janela eleitoral — no-op");
@@ -66,7 +73,6 @@ public class CollectorService {
       return "failed";
     }
     ElectionRound round = roundOpt.get();
-    String mode = properties.getAppMode();
     CollectorCycle cycle = store.startCycle(round.getId(), mode);
     CollectorStore.CycleStats stats = new CollectorStore.CycleStats();
     boolean degraded = false;

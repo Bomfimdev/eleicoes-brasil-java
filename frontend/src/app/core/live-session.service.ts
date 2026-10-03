@@ -65,12 +65,33 @@ export class LiveSessionService implements OnDestroy {
       },
       error: () => {
         if (this.overview()) {
-          // mantém último dado bom
           this.archived.set(true);
           this.error.set('Sem conexão — exibindo último snapshot recebido.');
-        } else {
-          this.error.set('API indisponível. Tente novamente em instantes.');
+          this.loading.set(false);
+          return;
         }
+        this.loadArchiveFallback();
+      },
+    });
+  }
+
+  private loadArchiveFallback(): void {
+    const path = environment.archivePath;
+    if (!path) {
+      this.error.set('API indisponível. Tente novamente em instantes.');
+      this.loading.set(false);
+      return;
+    }
+    this.api.loadArchive(path).subscribe({
+      next: (data) => {
+        this.overview.set(data);
+        this.archived.set(true);
+        this.lastOkAt.set(data.progress?.updatedAt ?? data.ingestion?.lastSuccessAt ?? null);
+        this.error.set('Modo arquivado — snapshot estático (API offline).');
+        this.loading.set(false);
+      },
+      error: () => {
+        this.error.set('API indisponível e sem arquivo de arquivo local.');
         this.loading.set(false);
       },
     });

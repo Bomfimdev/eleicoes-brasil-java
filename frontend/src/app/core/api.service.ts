@@ -30,4 +30,8 @@ export class ApiService {
       `${this.base}/api/elections/${roundSlug}/states/${uf}/results${q}`,
     );
   }
+
+  loadArchive(path: string): Observable<OverviewDto> {
+    return this.http.get<OverviewDto>(path);
+  }
 }

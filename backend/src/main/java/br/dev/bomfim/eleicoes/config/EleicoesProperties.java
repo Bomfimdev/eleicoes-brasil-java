@@ -13,6 +13,7 @@ public class EleicoesProperties {
   private final Tse tse = new Tse();
   private final Api api = new Api();
   private final Sse sse = new Sse();
+  private final Replay replay = new Replay();
 
   public String getAppMode() {
     return appMode;
@@ -60,6 +61,33 @@ public class EleicoesProperties {
 
   public Sse getSse() {
     return sse;
+  }
+
+  public Replay getReplay() {
+    return replay;
+  }
+
+  public static class Replay {
+    /** Round cujos snapshots serão reproduzidos. */
+    private String sourceRoundSlug = "demo-1";
+    /** Multiplicador de velocidade (só informativo no intervalo do scheduler). */
+    private double speed = 10.0;
+
+    public String getSourceRoundSlug() {
+      return sourceRoundSlug;
+    }
+
+    public void setSourceRoundSlug(String sourceRoundSlug) {
+      this.sourceRoundSlug = sourceRoundSlug;
+    }
+
+    public double getSpeed() {
+      return speed;
+    }
+
+    public void setSpeed(double speed) {
+      this.speed = speed;
+    }
   }
 
   public static class Api {

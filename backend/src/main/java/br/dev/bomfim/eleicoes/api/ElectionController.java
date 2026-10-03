@@ -85,6 +85,19 @@ public class ElectionController {
     return cached(id, "state:" + uf, request, () -> queries.state(id, uf));
   }
 
+  @GetMapping("/elections/{id}/export")
+  @Operation(summary = "Export do overview para arquivo estático (modo arquivado)")
+  public ResponseEntity<String> export(@PathVariable("id") String id) {
+    // Sem cache curto: snapshot completo para gravar no Pages
+    Object body = queries.overview(id);
+    ResponseCache.Entry entry = cache.put(id, "export", body);
+    return ResponseEntity.ok()
+        .contentType(MediaType.APPLICATION_JSON)
+        .header(HttpHeaders.CACHE_CONTROL, "no-store")
+        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + id + ".json\"")
+        .body(entry.json());
+  }
+
   @GetMapping("/elections/{id}/states/{uf}/results")
   @Operation(summary = "Resultado da UF")
   public ResponseEntity<String> stateResults(

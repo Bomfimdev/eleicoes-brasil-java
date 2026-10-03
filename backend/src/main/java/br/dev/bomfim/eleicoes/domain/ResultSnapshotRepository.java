@@ -1,5 +1,10 @@
 package br.dev.bomfim.eleicoes.domain;
 
+import java.util.List;
+import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface ResultSnapshotRepository extends JpaRepository<ResultSnapshot, Long> {}
+public interface ResultSnapshotRepository extends JpaRepository<ResultSnapshot, Long> {
+
+  List<ResultSnapshot> findByRoundIdOrderByCapturedAtAscIdAsc(UUID roundId);
+}

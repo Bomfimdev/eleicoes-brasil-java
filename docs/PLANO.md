@@ -152,16 +152,16 @@ O adapter do TSE vem **cedo** porque é a parte de maior risco.
 
 **Critério de pronto:** UI nacional atualiza sozinha (demo e, quando disponível, TSE).
 
-### Fase 5 — Deploy e operação
+### Fase 5 — Deploy e operação ✅
 
-- [ ] Modo `REPLAY`
-- [ ] Docker Compose full stack documentado
-- [ ] Testes JUnit essenciais + smoke manual
-- [ ] Deploy: Neon + Render + Cloudflare Pages (mesma região para API e banco)
-- [ ] Jobs no cron-job.org para as janelas J1 e J2
-- [ ] Export do snapshot final para o site estático (modo arquivado)
-- [ ] README de operação (local + deploy) com o runbook abaixo
-- [ ] Disclaimer de projeto independente
+- [x] Modo `REPLAY` (reaplica snapshots do banco; sem TSE)
+- [x] Docker Compose full stack documentado (`postgres` + `api` + `frontend` profile)
+- [x] Testes JUnit essenciais + smoke manual (checklist em `docs/OPERACAO.md`)
+- [x] Deploy: Neon + Render + Cloudflare Pages (mesma região para API e banco)
+- [x] Jobs no cron-job.org para as janelas J1 e J2 (instruções em `docs/OPERACAO.md`)
+- [x] Export do snapshot final (`/api/elections/{id}/export` + `scripts/export-archive.*`)
+- [x] README de operação (local + deploy) com o runbook
+- [x] Disclaimer de projeto independente (README, API `/meta`, rodapé Angular)
 
 **Critério de MVP utilizável:** demo local com SSE; URL pública no ar; ciclo completo testado em `SIMULATION`; disclaimer visível.
 

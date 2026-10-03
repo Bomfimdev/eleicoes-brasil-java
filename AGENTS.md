@@ -100,4 +100,4 @@ Fonte detalhada: `docs/PLANO.md` (escopo fechado).
 
 ## Próximo passo imediato
 
-**Fase 5 — Deploy e operação** (ver `docs/PLANO.md`). Fases 0–4 concluídas.
+MVP (fases 0–5) concluído. Operação: `docs/OPERACAO.md`. Pós-MVP (mapa/histórico/municípios) = novo plano.

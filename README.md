@@ -1,64 +1,85 @@
-﻿# Eleicoes Brasil - Java / Angular
+﻿# Eleições Brasil — Java / Angular
 
-Adaptacao do projeto [eleicoes-brasil](https://github.com/lucianookdp/eleicoes-brasil) para a stack **Java (Spring Boot) + Angular + PostgreSQL**.
+Adaptação do [lucianookdp/eleicoes-brasil](https://github.com/lucianookdp/eleicoes-brasil) para **Spring Boot + Angular + PostgreSQL**.
 
-> Projeto independente. Nao e um servico oficial da Justica Eleitoral.
+> **Disclaimer:** projeto independente. **Não é** serviço oficial da Justiça Eleitoral.  
+> Fonte dos dados: divulgação pública do TSE (via collector no backend — o navegador nunca fala com o TSE).
 
 ## Stack
 
-- **Backend:** Spring Boot / Java 17 - REST + SSE + collector
-- **Frontend:** Angular 19
-- **Banco:** PostgreSQL 16 + Liquibase
-- **Infra local:** Docker Compose
-- **Deploy MVP (free):** Cloudflare Pages + Render + Neon (ver `docs/PLANO.md`)
+| Camada | Tecnologia |
+|--------|------------|
+| API + collector + SSE | Spring Boot 4 / Java 17 |
+| Frontend | Angular 19 (SPA, mobile-first) |
+| Banco | PostgreSQL 16 + Liquibase |
+| Local | Docker Compose |
+| Deploy MVP | Cloudflare Pages + Render + Neon |
+
+## URLs públicas
+
+- Front: https://eleicoes-brasil.pages.dev  
+- API: https://eleicoes-brasil-api.onrender.com  
+- Swagger: https://eleicoes-brasil-api.onrender.com/swagger-ui.html  
+
+Operação detalhada (cron, REPLAY, archive, runbook): **[docs/OPERACAO.md](docs/OPERACAO.md)**
 
 ## Estrutura
 
 ```
-backend/     Spring Boot (API + futuro collector)
+backend/     Spring Boot (API + collector + REPLAY)
 frontend/    Angular
-docs/        Plano, prompt de sessao
-docker/      Init do Postgres (roles)
+docs/        PLANO, OPERACAO, prompt de sessão
+docker/      Postgres init + nginx
+scripts/     export-archive (modo arquivado)
 ```
 
 ## Como rodar (dev)
 
 ```bash
-# 1) Postgres (recria volume se os roles mudarem)
-docker compose down -v
+# Postgres
 docker compose up -d postgres
 
-# 2) API
+# API
 cd backend
-.\mvnw.cmd spring-boot:run
+./mvnw spring-boot:run   # Windows: .\mvnw.cmd spring-boot:run
 
-# 3) Angular (outro terminal)
+# Angular
 cd frontend
 npm start
 ```
 
-Credenciais locais padrao:
+- API: http://localhost:8080/api/health · /api/ready · /swagger-ui.html  
+- Front: http://localhost:4200  
 
-| Uso | Usuario | Senha |
+Credenciais locais:
+
+| Uso | Usuário | Senha |
 |-----|---------|-------|
 | Admin Docker | `eleicoes` | `eleicoes` |
-| Liquibase (DDL) | `eleicoes_migrator` | `eleicoes_migrator` |
-| App (DML) | `eleicoes_app` | `eleicoes_app` |
+| Liquibase | `eleicoes_migrator` | `eleicoes_migrator` |
+| App | `eleicoes_app` | `eleicoes_app` |
 
-- API health (sem banco): http://localhost:8080/api/health
-- API ready (com banco): http://localhost:8080/api/ready
-- Front: http://localhost:4200
+### Compose full stack
 
-## Contexto para o Cursor
+```bash
+docker compose up -d --build postgres api
+cd frontend && npm ci && npm run build -- --configuration production && cd ..
+docker compose --profile full up -d frontend
+# http://localhost:8088
+```
 
-Ao abrir este repo em uma **nova guia/janela**, leia:
+## Modos
 
-1. `AGENTS.md`
-2. `docs/PLANO.md`
-3. Cole o prompt de `docs/PROMPT-NOVA-SESSAO.md`
+`APP_MODE=DEVELOPMENT|SIMULATION|PRODUCTION|REPLAY` — ver `docs/OPERACAO.md`.
 
-Referencia do original (TypeScript): `D:\Eleicoes_2026`
+## Cursor / agente
 
-## Creditos
+1. `AGENTS.md`  
+2. `docs/PLANO.md`  
+3. Prompt em `docs/PROMPT-NOVA-SESSAO.md`  
 
-Arquitetura e dominio inspirados em [lucianookdp/eleicoes-brasil](https://github.com/lucianookdp/eleicoes-brasil).
+Referência TypeScript (só espelhar): `D:\Eleicoes_2026`
+
+## Créditos
+
+Arquitetura e domínio inspirados em [lucianookdp/eleicoes-brasil](https://github.com/lucianookdp/eleicoes-brasil).
