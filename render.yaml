@@ -2,9 +2,9 @@ services:
   - type: web
     name: eleicoes-brasil-api
     runtime: docker
-    rootDir: backend
     plan: free
     region: oregon
+    dockerfilePath: ./Dockerfile
     healthCheckPath: /api/health
     envVars:
       - key: SPRING_PROFILES_ACTIVE
