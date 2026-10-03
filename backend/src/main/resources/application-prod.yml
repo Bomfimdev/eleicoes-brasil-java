@@ -4,13 +4,23 @@ server:
 spring:
   jpa:
     show-sql: false
+    open-in-view: false
+  jmx:
+    enabled: false
 
 eleicoes:
   collector:
     # Em produção respeita ELECTION_WINDOWS (no-op fora da janela).
     ignore-windows: ${COLLECTOR_IGNORE_WINDOWS:false}
 
+# Swagger fica disponível; docs em memória só sob demanda.
+springdoc:
+  swagger-ui:
+    disable-swagger-default-url: true
+
 logging:
   level:
-    root: INFO
+    root: WARN
     br.dev.bomfim.eleicoes: INFO
+    org.hibernate: WARN
+    org.springframework: WARN
