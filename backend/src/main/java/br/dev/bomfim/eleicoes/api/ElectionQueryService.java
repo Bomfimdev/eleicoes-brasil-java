@@ -47,14 +47,13 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -478,40 +477,11 @@ public class ElectionQueryService {
           continue;
         }
 
-        // Proporcional: flag TSE + vagas do partido (vag). Não inventa só por %.
-        Set<String> seen = new HashSet<>();
+        // Proporcional: só flag/status oficial do TSE. Vagas (vag) e % NÃO definem eleito.
         for (JsonNode c : ranked) {
           String label = electedLabel(c);
           if (label != null) {
             people.add(toElectedPerson(meta, c, label));
-            seen.add(candidateKey(c));
-          }
-        }
-        JsonNode parties = root.path("parties");
-        if (parties.isArray()) {
-          for (JsonNode party : parties) {
-            Integer partySeats = intOrNull(party, "seats");
-            if (partySeats == null || partySeats < 1) {
-              continue;
-            }
-            String partyNumber = text(party, "number");
-            int taken = 0;
-            for (JsonNode c : ranked) {
-              if (taken >= partySeats) {
-                break;
-              }
-              if (partyNumber != null && !partyNumber.equals(text(c, "partyNumber"))) {
-                continue;
-              }
-              String key = candidateKey(c);
-              if (seen.contains(key)) {
-                taken++;
-                continue;
-              }
-              people.add(toElectedPerson(meta, c, "Definido"));
-              seen.add(key);
-              taken++;
-            }
           }
         }
       }
@@ -526,12 +496,18 @@ public class ElectionQueryService {
     return new ElectedDto(groups);
   }
 
+  private static final Pattern ELECTED_STATUS =
+      Pattern.compile(
+          "^(eleito|eleito por qp|eleito por m[eé]dia|2[ºo°] turno)$",
+          Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
+
   private static String electedLabel(JsonNode c) {
     Boolean elected = boolOrNull(c, "elected");
     String status = text(c, "status");
-    if (Boolean.TRUE.equals(elected)
-        || (status != null && status.toLowerCase(Locale.ROOT).contains("eleito"))) {
-      return status != null && !status.isBlank() ? status : "Eleito";
+    // Nunca usar contains("eleito"): "Não eleito" também contém a substring.
+    boolean statusElected = status != null && ELECTED_STATUS.matcher(status.trim()).matches();
+    if (Boolean.TRUE.equals(elected) || statusElected) {
+      return statusElected ? status.trim() : "Eleito";
     }
     return null;
   }
@@ -545,16 +521,6 @@ public class ElectionQueryService {
                 Comparator.reverseOrder())
             .thenComparing(c -> text(c, "number") == null ? "" : text(c, "number")));
     return ranked;
-  }
-
-  private static String candidateKey(JsonNode c) {
-    String key = text(c, "key");
-    if (key != null && !key.isBlank()) {
-      return key;
-    }
-    String number = text(c, "number");
-    String party = text(c, "partyNumber");
-    return (party == null ? "" : party) + "-" + (number == null ? "" : number);
   }
 
   private static ElectedDto.ElectedPersonDto toElectedPerson(
