@@ -3,7 +3,7 @@
 @if (detail(); as d) {
   <header class="head">
     <h1>
-      @if (exterior) {
+      @if (exterior()) {
         Exterior
       } @else {
         {{ d.uf }} · {{ d.name }}
@@ -14,7 +14,7 @@
   </header>
 
   <section class="result">
-    <h2>{{ exterior ? 'Presidente no Exterior' : 'Presidente neste estado' }}</h2>
+    <h2>{{ exterior() ? 'Presidente no Exterior' : 'Presidente neste estado' }}</h2>
     @if (president(); as r) {
       @if (r.candidates.length === 0) {
         <p class="empty">Aguardando votos.</p>
@@ -34,7 +34,7 @@
     }
   </section>
 
-  @if (!exterior) {
+  @if (!exterior()) {
     <section class="result">
       <h2>Governador</h2>
       @if (governor(); as r) {
@@ -58,10 +58,41 @@
   }
 
   <section class="result">
-    <h2>{{ exterior ? 'Países e cidades no exterior' : 'Municípios' }}</h2>
-    @if (cities().length) {
+    <div class="sec-head">
+      <h2>{{ exterior() ? 'Países e cidades no exterior' : 'Municípios' }}</h2>
+      @if (exterior() && cities().length) {
+        <span class="count">{{ filteredCities().length }} de {{ cities().length }}</span>
+      }
+    </div>
+
+    @if (exterior() && cities().length) {
+      <div class="tools">
+        <label class="search">
+          <span class="sr-only">Buscar país ou cidade</span>
+          <input
+            type="search"
+            placeholder="Buscar país ou cidade…"
+            [ngModel]="query()"
+            (ngModelChange)="onQuery($event)"
+            autocomplete="off"
+          />
+        </label>
+        <label class="sort">
+          Ordenar
+          <select [ngModel]="sort()" (ngModelChange)="onSort($event)">
+            <option value="pct-desc">Maior % apurada</option>
+            <option value="pct-asc">Menor % apurada</option>
+            <option value="leader-desc">Líder (mais votos)</option>
+            <option value="name-asc">Nome A–Z</option>
+            <option value="name-desc">Nome Z–A</option>
+          </select>
+        </label>
+      </div>
+    }
+
+    @if (filteredCities().length) {
       <ul class="cities">
-        @for (c of cities(); track c.code) {
+        @for (c of filteredCities(); track c.code) {
           <li>
             <a [routerLink]="['/estado', d.uf, 'municipio', c.code]">
               <span class="name">
@@ -80,10 +111,12 @@
           </li>
         }
       </ul>
+    } @else if (cities().length && query()) {
+      <p class="empty">Nenhum resultado para “{{ query() }}”.</p>
     } @else {
       <p class="empty">
         {{
-          exterior
+          exterior()
             ? 'Países aparecem quando o cadastro TSE do Exterior estiver disponível.'
             : 'Capitais aparecem aqui quando o cadastro TSE estiver disponível.'
         }}
