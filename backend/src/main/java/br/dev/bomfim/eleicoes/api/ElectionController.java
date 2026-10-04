@@ -178,6 +178,15 @@ public class ElectionController {
         id, "series:" + office + ":" + area, request, () -> queries.series(id, office, area));
   }
 
+  @GetMapping("/elections/{id}/elected")
+  @Operation(summary = "Eleitos por cargo (governador, senador, deputados)")
+  public ResponseEntity<String> elected(
+      @PathVariable("id") String id,
+      @RequestParam(value = "office", required = false) String office,
+      HttpServletRequest request) {
+    return cached(id, "elected:" + office, request, () -> queries.elected(id, office));
+  }
+
   @GetMapping("/elections/{id}/compare")
   @Operation(summary = "Comparar estados lado a lado")
   public ResponseEntity<String> compare(

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="006-seed-state-offices" author="bomfim">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM offices
+                WHERE round_id = 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb1'
+                  AND slug = 'senador'
+            </sqlCheck>
+        </preConditions>
+        <comment>Cargos estaduais 2026-1 para tela Eleitos (senador e deputados).</comment>
+        <sql splitStatements="true" stripComments="true">
+            INSERT INTO offices (
+                id, round_id, provider, provider_id, provider_election_code,
+                slug, name, kind, scope, states
+            ) VALUES
+            (
+                'cccccccc-cccc-cccc-cccc-cccccccccc03',
+                'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb1',
+                'TSE', '5', '21272',
+                'senador', 'Senador', 'majoritarian', 'state', NULL
+            ),
+            (
+                'cccccccc-cccc-cccc-cccc-cccccccccc04',
+                'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb1',
+                'TSE', '6', '21272',
+                'deputado-federal', 'Deputado Federal', 'proportional', 'state', NULL
+            ),
+            (
+                'cccccccc-cccc-cccc-cccc-cccccccccc05',
+                'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb1',
+                'TSE', '7', '21272',
+                'deputado-estadual', 'Deputado Estadual', 'proportional', 'state', NULL
+            ),
+            (
+                'cccccccc-cccc-cccc-cccc-cccccccccc06',
+                'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb1',
+                'TSE', '8', '21272',
+                'deputado-distrital', 'Deputado Distrital', 'proportional', 'state', ARRAY['DF']
+            );
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

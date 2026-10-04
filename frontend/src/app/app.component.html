@@ -97,13 +97,13 @@
     <span class="bico" aria-hidden="true">☰</span>
     Estados
   </a>
+  <a routerLink="/eleitos" routerLinkActive="is-active">
+    <span class="bico" aria-hidden="true">★</span>
+    Eleitos
+  </a>
   <a routerLink="/ao-vivo" routerLinkActive="is-active">
     <span class="bico" aria-hidden="true">●</span>
     Ao vivo
-  </a>
-  <a routerLink="/historico" routerLinkActive="is-active">
-    <span class="bico" aria-hidden="true">◷</span>
-    Histórico
   </a>
   <button type="button" (click)="moreOpen.set(true)" [attr.aria-expanded]="moreOpen()">
     <span class="bico" aria-hidden="true">⋯</span>
@@ -120,6 +120,7 @@
         <button type="button" class="icon-x" (click)="moreOpen.set(false)" aria-label="Fechar">✕</button>
       </div>
       <ul>
+        <li><a routerLink="/historico" (click)="moreOpen.set(false)">Histórico</a></li>
         <li><a routerLink="/comparar" (click)="moreOpen.set(false)">Comparar estados</a></li>
         <li class="theme-row">
           <span>Tema</span>

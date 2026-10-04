@@ -10,5 +10,6 @@
     <include file="db/changelog/changes/003-seed-demo.xml" relativeToChangelogFile="false"/>
     <include file="db/changelog/changes/004-seed-2026.xml" relativeToChangelogFile="false"/>
     <include file="db/changelog/changes/005-seed-capitals.xml" relativeToChangelogFile="false"/>
+    <include file="db/changelog/changes/006-seed-state-offices.xml" relativeToChangelogFile="false"/>
 
 </databaseChangeLog>

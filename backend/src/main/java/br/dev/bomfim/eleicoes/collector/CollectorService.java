@@ -199,18 +199,35 @@ public class CollectorService {
         degraded = true;
       }
 
-      // Governador por UF (necessário para Comparar / detalhe estadual).
-      Optional<TseOffice> governador =
-          config.offices().stream()
-              .filter(o -> "3".equals(o.code()) || "governador".equals(o.slug()))
-              .findFirst();
-      Optional<Office> dbGovernador =
-          officeRepository.findByRoundIdAndSlug(round.getId(), "governador");
-      if (governador.isPresent() && dbGovernador.isPresent()) {
-        TseOffice tseGov = governador.get();
-        Office dbGov = dbGovernador.get();
+      // Cargos estaduais: governador, senador e deputados (tela Eleitos / Comparar).
+      String[][] stateOffices = {
+        {"governador", "3"},
+        {"senador", "5"},
+        {"deputado-federal", "6"},
+        {"deputado-estadual", "7"},
+        {"deputado-distrital", "8"}
+      };
+      for (String[] pair : stateOffices) {
+        String slug = pair[0];
+        String code = pair[1];
+        Optional<TseOffice> tseOpt =
+            config.offices().stream()
+                .filter(o -> code.equals(o.code()) || slug.equals(o.slug()))
+                .findFirst();
+        Optional<Office> dbOpt = officeRepository.findByRoundIdAndSlug(round.getId(), slug);
+        if (tseOpt.isEmpty() || dbOpt.isEmpty()) {
+          continue;
+        }
+        TseOffice tseOffice = tseOpt.get();
+        Office dbOffice = dbOpt.get();
         for (BrazilianStates.State state : BrazilianStates.DOMESTIC) {
-          CollectOutcome out = pullStateResult(round, dbGov, tseGov, state.code(), stats);
+          if ("deputado-distrital".equals(slug) && !"DF".equals(state.code())) {
+            continue;
+          }
+          if ("deputado-estadual".equals(slug) && "DF".equals(state.code())) {
+            continue;
+          }
+          CollectOutcome out = pullStateResult(round, dbOffice, tseOffice, state.code(), stats);
           if (out == CollectOutcome.STORED) {
             changed = true;
           } else if (out == CollectOutcome.ERROR) {

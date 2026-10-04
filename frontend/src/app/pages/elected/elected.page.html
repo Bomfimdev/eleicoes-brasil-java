@@ -1,0 +1,43 @@
+<header class="page-head">
+  <h1>Eleitos</h1>
+  <p class="sub">Governadores, senadores e deputados definidos pelo TSE</p>
+</header>
+
+<div class="seg" role="tablist" aria-label="Cargo">
+  @for (t of tabs; track t.slug) {
+    <button
+      type="button"
+      role="tab"
+      [class.on]="tab() === t.slug"
+      [attr.aria-selected]="tab() === t.slug"
+      (click)="setTab(t.slug)"
+    >
+      {{ t.label }}
+    </button>
+  }
+</div>
+
+@if (group(); as g) {
+  <p class="count">{{ g.count }} {{ g.count === 1 ? 'eleito' : 'eleitos' }}</p>
+
+  @if (g.people.length) {
+    <ul class="grid">
+      @for (p of g.people; track p.uf + '-' + p.name + '-' + $index) {
+        <li class="card">
+          <span class="uf">{{ p.uf }}</span>
+          <span class="name">{{ p.name || '—' }}</span>
+          <span class="party">{{ p.party || '—' }}</span>
+          <span class="pct numeral">{{ fmtPct(p.percent) }}</span>
+        </li>
+      }
+    </ul>
+  } @else if (!loading()) {
+    <p class="empty">Ainda sem eleitos divulgados neste cargo.</p>
+  }
+} @else if (loading()) {
+  <p class="muted">Carregando…</p>
+} @else if (error()) {
+  <p class="warn">{{ error() }}</p>
+} @else {
+  <p class="empty">Aguardando dados deste cargo.</p>
+}

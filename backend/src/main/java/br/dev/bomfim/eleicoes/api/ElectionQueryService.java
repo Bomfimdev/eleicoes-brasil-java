@@ -6,6 +6,7 @@ import br.dev.bomfim.eleicoes.api.dto.CityDetailDto;
 import br.dev.bomfim.eleicoes.api.dto.CityPageDto;
 import br.dev.bomfim.eleicoes.api.dto.CityRowDto;
 import br.dev.bomfim.eleicoes.api.dto.CompareDto;
+import br.dev.bomfim.eleicoes.api.dto.ElectedDto;
 import br.dev.bomfim.eleicoes.api.dto.ElectionSummaryDto;
 import br.dev.bomfim.eleicoes.api.dto.IngestionDto;
 import br.dev.bomfim.eleicoes.api.dto.OfficeDto;
@@ -385,6 +386,74 @@ public class ElectionQueryService {
               leader == null ? null : leader.percent()));
     }
     return new TimelineAtDto(atRaw, progress, headline, states);
+  }
+
+  @Transactional(readOnly = true)
+  public ElectedDto elected(String slug, String officeFilter) {
+    LoadedRound loaded = requireRound(slug);
+    List<String> wanted =
+        officeFilter == null || officeFilter.isBlank()
+            ? List.of(
+                "governador",
+                "senador",
+                "deputado-federal",
+                "deputado-estadual",
+                "deputado-distrital")
+            : List.of(officeFilter.trim().toLowerCase(Locale.ROOT));
+    List<ElectedDto.OfficeGroupDto> groups = new ArrayList<>();
+    for (String officeSlug : wanted) {
+      Office office =
+          loaded.offices().stream()
+              .filter(o -> officeSlug.equals(o.getSlug()))
+              .findFirst()
+              .orElse(null);
+      if (office == null) {
+        continue;
+      }
+      List<ElectedDto.ElectedPersonDto> people = new ArrayList<>();
+      List<AreaResult> rows =
+          resultRepository.findByRoundIdAndOfficeIdAndAreaType(
+              loaded.round().getId(), office.getId(), "state");
+      for (AreaResult row : rows) {
+        if (row.getStateCode() == null || BrazilianStates.isExterior(row.getStateCode())) {
+          continue;
+        }
+        BrazilianStates.State meta = BrazilianStates.require(row.getStateCode());
+        JsonNode candNode = parseTree(row.getResult()).path("candidates");
+        if (!candNode.isArray()) {
+          continue;
+        }
+        for (JsonNode c : candNode) {
+          Boolean elected = boolOrNull(c, "elected");
+          String status = text(c, "status");
+          boolean isElected =
+              Boolean.TRUE.equals(elected)
+                  || (status != null && status.toLowerCase(Locale.ROOT).contains("eleito"));
+          if (!isElected) {
+            continue;
+          }
+          String ballot = text(c, "ballotName");
+          String name = ballot != null && !ballot.isBlank() ? ballot : text(c, "name");
+          people.add(
+              new ElectedDto.ElectedPersonDto(
+                  meta.code(),
+                  meta.name(),
+                  name,
+                  text(c, "partyAbbreviation"),
+                  doubleOrNull(c, "percent"),
+                  longOrNull(c, "votes"),
+                  status));
+        }
+      }
+      people.sort(
+          Comparator.comparing(ElectedDto.ElectedPersonDto::uf)
+              .thenComparing(
+                  (ElectedDto.ElectedPersonDto p) -> p.votes() == null ? Long.MIN_VALUE : p.votes(),
+                  Comparator.reverseOrder()));
+      groups.add(
+          new ElectedDto.OfficeGroupDto(office.getSlug(), office.getName(), people.size(), people));
+    }
+    return new ElectedDto(groups);
   }
 
   @Transactional(readOnly = true)
