@@ -1,5 +1,6 @@
 ﻿import { Component, OnInit, computed, effect, inject, signal } from '@angular/core';
-import { Subscription } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Subject, catchError, debounceTime, finalize, of, switchMap } from 'rxjs';
 import { ApiService } from '../../core/api.service';
 import { fmtInt, fmtPct } from '../../core/format';
 import { LiveSessionService } from '../../core/live-session.service';
@@ -21,7 +22,7 @@ const TABS: { slug: string; label: string }[] = [
 export class ElectedPage implements OnInit {
   private readonly api = inject(ApiService);
   readonly live = inject(LiveSessionService);
-  private sub: Subscription | null = null;
+  private readonly reload$ = new Subject<void>();
 
   readonly tabs = TABS;
   readonly tab = signal(TABS[0].slug);
@@ -51,25 +52,35 @@ export class ElectedPage implements OnInit {
   });
 
   constructor() {
-    effect(() => {
-      const slug = this.live.roundSlug();
-      this.live.version();
-      this.sub?.unsubscribe();
-      this.loading.set(true);
-      this.error.set(null);
-      this.sub = this.api.elected(slug).subscribe({
-        next: (d) => {
-          this.data.set(d);
-          this.loading.set(false);
-          this.error.set(null);
-        },
-        error: () => {
+    this.reload$
+      .pipe(
+        debounceTime(250),
+        switchMap(() => {
           if (!this.data()) {
-            this.error.set('Nao foi possivel carregar os eleitos.');
+            this.loading.set(true);
           }
-          this.loading.set(false);
-        },
+          return this.api.elected(this.live.roundSlug()).pipe(
+            catchError(() => {
+              if (!this.data()) {
+                this.error.set('Nao foi possivel carregar os eleitos.');
+              }
+              return of(null);
+            }),
+            finalize(() => this.loading.set(false)),
+          );
+        }),
+        takeUntilDestroyed(),
+      )
+      .subscribe((d) => {
+        if (!d) return;
+        this.data.set(d);
+        this.error.set(null);
       });
+
+    effect(() => {
+      this.live.roundSlug();
+      this.live.version();
+      this.reload$.next();
     });
   }
 
