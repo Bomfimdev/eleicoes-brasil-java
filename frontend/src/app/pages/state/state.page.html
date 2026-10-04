@@ -2,14 +2,20 @@
 
 @if (detail(); as d) {
   <header class="head">
-    <h1>{{ d.uf }} · {{ d.name }}</h1>
+    <h1>
+      @if (exterior) {
+        Exterior
+      } @else {
+        {{ d.uf }} · {{ d.name }}
+      }
+    </h1>
     <p class="pct">{{ fmtPct(d.progress?.countedPct ?? null) }} apurado</p>
     <p class="meta">Atualizado {{ fmtClock(d.progress?.updatedAt) }}</p>
   </header>
 
   <section class="result">
-    <h2>Presidente neste estado</h2>
-    @if (result(); as r) {
+    <h2>{{ exterior ? 'Presidente no Exterior' : 'Presidente neste estado' }}</h2>
+    @if (president(); as r) {
       @if (r.candidates.length === 0) {
         <p class="empty">Aguardando votos.</p>
       } @else {
@@ -24,12 +30,35 @@
         </ol>
       }
     } @else {
-      <p class="empty">Sem resultado estadual de presidente ainda.</p>
+      <p class="empty">Sem resultado de presidente ainda.</p>
     }
   </section>
 
+  @if (!exterior) {
+    <section class="result">
+      <h2>Governador</h2>
+      @if (governor(); as r) {
+        @if (r.candidates.length === 0) {
+          <p class="empty">Aguardando votos.</p>
+        } @else {
+          <ol>
+            @for (c of r.candidates; track c.key ?? c.number) {
+              <li>
+                <span class="name">{{ c.ballotName || c.name || '—' }}</span>
+                <span>{{ fmtPct(c.percent) }}</span>
+                <span class="muted">{{ fmtInt(c.votes) }}</span>
+              </li>
+            }
+          </ol>
+        }
+      } @else {
+        <p class="empty">Sem resultado de governador ainda.</p>
+      }
+    </section>
+  }
+
   <section class="result">
-    <h2>Municípios</h2>
+    <h2>{{ exterior ? 'Países e cidades no exterior' : 'Municípios' }}</h2>
     @if (cities().length) {
       <ul class="cities">
         @for (c of cities(); track c.code) {
@@ -41,17 +70,28 @@
                   <span class="badge">capital</span>
                 }
               </span>
-              <span class="pct">{{ fmtPct(c.progress?.countedPct ?? null, 1) }}</span>
+              <span class="meta">
+                @if (c.leaderName) {
+                  <span class="leader">{{ c.leaderName }}</span>
+                }
+                <span class="pct">{{ fmtPct(c.progress?.countedPct ?? null, 1) }}</span>
+              </span>
             </a>
           </li>
         }
       </ul>
     } @else {
-      <p class="empty">Capitais aparecem aqui quando o cadastro TSE estiver disponível.</p>
+      <p class="empty">
+        {{
+          exterior
+            ? 'Países aparecem quando o cadastro TSE do Exterior estiver disponível.'
+            : 'Capitais aparecem aqui quando o cadastro TSE estiver disponível.'
+        }}
+      </p>
     }
   </section>
 } @else if (loading()) {
-  <p class="muted">Carregando estado…</p>
+  <p class="muted">Carregando…</p>
 } @else if (error()) {
   <p class="warn">{{ error() }}</p>
 }

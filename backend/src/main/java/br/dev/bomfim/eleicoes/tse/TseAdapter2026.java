@@ -10,6 +10,7 @@ import br.dev.bomfim.eleicoes.tse.model.Fetched;
 import br.dev.bomfim.eleicoes.tse.model.PartyResult;
 import br.dev.bomfim.eleicoes.tse.model.Provenance;
 import br.dev.bomfim.eleicoes.tse.model.StateProgress;
+import br.dev.bomfim.eleicoes.tse.model.TseCity;
 import br.dev.bomfim.eleicoes.tse.model.TseOffice;
 import br.dev.bomfim.eleicoes.tse.model.VotesSummary;
 import tools.jackson.databind.JsonNode;
@@ -34,7 +35,7 @@ public class TseAdapter2026 {
   private static final Set<String> STATES =
       Set.of(
           "AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", "PA", "PB",
-          "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO");
+          "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO", "ZZ");
 
   private static final Map<String, String[]> KNOWN_OFFICES =
       Map.of(
@@ -202,6 +203,42 @@ public class TseAdapter2026 {
   public Fetched<AreaResultView> getStateResult(TseOffice office, String uf) {
     String code = uf.toUpperCase(Locale.ROOT);
     return getResult(office, code.toLowerCase(Locale.ROOT), "state", code, null);
+  }
+
+  /** Municípios (e cidades/países do Exterior / ZZ) do arquivo mun-*-cm.json. */
+  public List<TseCity> getCities(String electionCode) {
+    Context ctx = ctx();
+    String url = dir(ctx, "cm", electionCode, "") + "/mun-e" + pad(electionCode, 6) + "-cm.json";
+    TseClient.FetchResult res = client.get(url);
+    if (res.notModified()) {
+      return List.of();
+    }
+    JsonNode file = parse(res.body(), url);
+    if (!file.path("abr").isArray()) {
+      throw new TsePayloadException("payload does not match city config schema", url);
+    }
+    List<TseCity> cities = new ArrayList<>();
+    for (JsonNode abr : file.path("abr")) {
+      String uf = TseNumbers.asCode(scalar(abr, "cd")).toUpperCase(Locale.ROOT);
+      if (!STATES.contains(uf)) {
+        continue;
+      }
+      for (JsonNode mu : abr.path("mu")) {
+        String code = pad(TseNumbers.asCode(scalar(mu, "cd")), 5);
+        String ibge = scalar(mu, "cdi") == null ? null : String.valueOf(scalar(mu, "cdi"));
+        String name = text(mu, "nm");
+        if (name == null || name.isBlank()) {
+          continue;
+        }
+        boolean capital = "s".equalsIgnoreCase(text(mu, "c"));
+        List<String> zones = new ArrayList<>();
+        for (JsonNode z : mu.path("z")) {
+          zones.add(pad(z.asText(), 4));
+        }
+        cities.add(new TseCity(uf, code, ibge, name, capital, List.copyOf(zones)));
+      }
+    }
+    return cities;
   }
 
   public Fetched<AreaResultView> getCityResult(TseOffice office, String uf, String cityCode) {

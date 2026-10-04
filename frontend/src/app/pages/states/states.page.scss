@@ -77,3 +77,34 @@
 .muted {
   color: var(--muted);
 }
+
+.pad {
+  padding: 1rem;
+}
+
+.exterior {
+  margin-top: 1.5rem;
+}
+
+.exterior h2 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 650;
+}
+
+.zz-card {
+  display: grid;
+  grid-template-columns: 2.75rem 1fr auto;
+  gap: 0.65rem;
+  align-items: center;
+  margin-top: 0.75rem;
+  padding: 0.85rem 1rem;
+  text-decoration: none;
+  border: 1px solid var(--line);
+  border-radius: 0.65rem;
+  background: var(--surface);
+}
+
+.zz-card:hover {
+  background: var(--surface-2);
+}

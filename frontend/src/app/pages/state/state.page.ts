@@ -24,10 +24,15 @@ export class StatePage implements OnInit, OnDestroy {
   readonly fmtClock = fmtClock;
 
   readonly detail = signal<StateDetailDto | null>(null);
-  readonly result = signal<ResultDto | null>(null);
+  readonly president = signal<ResultDto | null>(null);
+  readonly governor = signal<ResultDto | null>(null);
   readonly cities = signal<CityRowDto[]>([]);
   readonly error = signal<string | null>(null);
   readonly loading = signal(true);
+
+  get exterior(): boolean {
+    return (this.detail()?.uf ?? '').toUpperCase() === 'ZZ';
+  }
 
   ngOnInit(): void {
     this.live.start();
@@ -44,23 +49,33 @@ export class StatePage implements OnInit, OnDestroy {
   private load(uf: string): void {
     this.loading.set(true);
     this.error.set(null);
+    this.president.set(null);
+    this.governor.set(null);
+    this.cities.set([]);
     const slug = this.live.roundSlug();
     const v = this.live.version();
+    const isZz = uf.toUpperCase() === 'ZZ';
     this.api.state(slug, uf, v).subscribe({
       next: (d) => {
         this.detail.set(d);
         this.loading.set(false);
         this.api.stateResults(slug, uf, 'presidente', v).subscribe({
-          next: (r) => this.result.set(r),
-          error: () => this.result.set(null),
+          next: (r) => this.president.set(r),
+          error: () => this.president.set(null),
         });
-        this.api.cities(slug, uf, { pageSize: 40 }).subscribe({
+        if (!isZz) {
+          this.api.stateResults(slug, uf, 'governador', v).subscribe({
+            next: (r) => this.governor.set(r),
+            error: () => this.governor.set(null),
+          });
+        }
+        this.api.cities(slug, uf, { pageSize: isZz ? 200 : 40 }).subscribe({
           next: (page) => this.cities.set(page.items),
           error: () => this.cities.set([]),
         });
       },
       error: () => {
-        this.error.set('Não foi possível carregar este estado.');
+        this.error.set(isZz ? 'Não foi possível carregar o Exterior.' : 'Não foi possível carregar este estado.');
         this.loading.set(false);
       },
     });

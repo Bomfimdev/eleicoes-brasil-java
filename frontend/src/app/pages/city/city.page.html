@@ -1,13 +1,17 @@
 @if (detail(); as d) {
   <p class="back">
-    <a [routerLink]="['/estado', d.uf]">← {{ d.uf }}</a>
+    <a [routerLink]="['/estado', d.uf]">← {{ d.uf === 'ZZ' ? 'Exterior' : d.uf }}</a>
   </p>
   <header class="head">
     <h1>{{ d.city.name }}</h1>
     <p class="sub">
-      {{ d.uf }} · {{ d.stateName }}
-      @if (d.city.capital) {
-        · capital
+      @if (d.uf === 'ZZ') {
+        Exterior · votos de brasileiros
+      } @else {
+        {{ d.uf }} · {{ d.stateName }}
+        @if (d.city.capital) {
+          · capital
+        }
       }
     </p>
     <p class="pct">{{ fmtPct(d.progress?.countedPct ?? null) }} apurado</p>

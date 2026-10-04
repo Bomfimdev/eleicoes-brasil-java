@@ -175,15 +175,20 @@ public class ElectionQueryService {
     BrazilianStates.State meta = BrazilianStates.require(uf);
     LoadedRound loaded = requireRound(slug);
     List<OfficeDto> offices =
-        loaded.offices().stream()
-            .filter(
-                o ->
-                    "state".equals(o.getScope())
-                        && (o.getStates() == null
-                            || o.getStates().length == 0
-                            || List.of(o.getStates()).contains(meta.code())))
-            .map(this::toOffice)
-            .toList();
+        BrazilianStates.isExterior(meta.code())
+            ? loaded.offices().stream()
+                .filter(o -> "country".equals(o.getScope()))
+                .map(this::toOffice)
+                .toList()
+            : loaded.offices().stream()
+                .filter(
+                    o ->
+                        "state".equals(o.getScope())
+                            && (o.getStates() == null
+                                || o.getStates().length == 0
+                                || List.of(o.getStates()).contains(meta.code())))
+                .map(this::toOffice)
+                .toList();
     return new StateDetailDto(
         toDetail(loaded),
         meta.code(),
@@ -463,7 +468,7 @@ public class ElectionQueryService {
                     .reversed()
                     .thenComparing(City::getName, String.CASE_INSENSITIVE_ORDER))
             .toList();
-    int size = Math.max(1, Math.min(pageSize, 100));
+    int size = Math.max(1, Math.min(pageSize, 250));
     int p = Math.max(0, page);
     int from = Math.min(p * size, filtered.size());
     int to = Math.min(from + size, filtered.size());
@@ -736,7 +741,7 @@ public class ElectionQueryService {
     }
 
     List<StateRowDto> out = new ArrayList<>();
-    for (BrazilianStates.State s : BrazilianStates.ALL) {
+    for (BrazilianStates.State s : BrazilianStates.WITH_EXTERIOR) {
       AreaProgress p = byUf.get(s.code());
       CandidateDto leader = leaders.get(s.code());
       out.add(

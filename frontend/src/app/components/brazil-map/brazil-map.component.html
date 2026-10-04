@@ -13,21 +13,23 @@
   </div>
 
   <div class="canvas">
-    <svg [attr.viewBox]="map.viewBox" role="group" aria-label="Mapa do Brasil por estado">
-      @for (loc of map.locations; track loc.id) {
-        <path
-          [attr.d]="loc.path"
-          [attr.fill]="fill(loc.id)"
-          role="link"
-          tabindex="0"
-          [attr.aria-label]="loc.name"
-          (pointerenter)="onEnter(loc.id)"
-          (pointerleave)="onLeave()"
-          (click)="onActivate(loc.id, $event)"
-          (keydown)="onKey(loc.id, $event)"
-        />
-      }
-    </svg>
+    <div class="map-stage">
+      <svg [attr.viewBox]="map.viewBox" role="group" aria-label="Mapa do Brasil por estado">
+        @for (loc of map.locations; track loc.id) {
+          <path
+            [attr.d]="loc.path"
+            [attr.fill]="fill(loc.id)"
+            role="link"
+            tabindex="0"
+            [attr.aria-label]="loc.name"
+            (pointerenter)="onEnter(loc.id)"
+            (pointerleave)="onLeave()"
+            (click)="onActivate(loc.id, $event)"
+            (keydown)="onKey(loc.id, $event)"
+          />
+        }
+      </svg>
+    </div>
 
     @if (shown(); as s) {
       <aside class="panel">

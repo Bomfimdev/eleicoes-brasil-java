@@ -4,19 +4,41 @@
     <p class="sub">Totalização e líderes por UF</p>
   </header>
 
-  <app-brazil-map [states]="o.states" [allowLeader]="!!o.headline" />
+  <app-brazil-map [states]="domestic()" [allowLeader]="!!o.headline" />
 
   <ul class="states">
-    @for (s of o.states; track s.uf) {
+    @for (s of domestic(); track s.uf) {
       <li>
         <a [routerLink]="['/estado', s.uf]">
           <span class="uf">{{ s.uf }}</span>
           <span class="name">{{ s.name }}</span>
-          <span class="pct">{{ fmtPct(s.progress?.countedPct ?? null, 1) }}</span>
+          <span class="meta">
+            @if (s.leaderName) {
+              <span class="leader">{{ s.leaderName }}</span>
+            }
+            <span class="pct">{{ fmtPct(s.progress?.countedPct ?? null, 1) }}</span>
+          </span>
         </a>
       </li>
     }
   </ul>
+
+  @if (exterior(); as zz) {
+    <section class="exterior">
+      <h2>Exterior</h2>
+      <p class="sub">Votos de brasileiros no exterior (presidente)</p>
+      <a class="zz-card" [routerLink]="['/estado', 'ZZ']">
+        <span class="uf">ZZ</span>
+        <span class="name">{{ zz.name }}</span>
+        <span class="meta">
+          @if (zz.leaderName) {
+            <span class="leader">{{ zz.leaderName }}</span>
+          }
+          <span class="pct">{{ fmtPct(zz.progress?.countedPct ?? null, 1) }}</span>
+        </span>
+      </a>
+    </section>
+  }
 } @else if (live.loading()) {
   <p class="muted pad">Carregando…</p>
 }

@@ -65,7 +65,7 @@
       <a routerLink="/estados">Ver todos</a>
     </div>
     @if (tab() === 'mapa') {
-      <app-brazil-map [states]="o.states" [allowLeader]="!!o.headline" />
+      <app-brazil-map [states]="mapStates(o.states)" [allowLeader]="!!o.headline" />
     } @else {
       @if (series(); as ser) {
         <app-evolution-chart [series]="ser" />

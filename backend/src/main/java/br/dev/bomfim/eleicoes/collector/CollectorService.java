@@ -18,6 +18,7 @@ import br.dev.bomfim.eleicoes.tse.model.CountryProgress;
 import br.dev.bomfim.eleicoes.tse.model.ElectionConfig;
 import br.dev.bomfim.eleicoes.tse.model.Fetched;
 import br.dev.bomfim.eleicoes.tse.model.StateProgress;
+import br.dev.bomfim.eleicoes.tse.model.TseCity;
 import br.dev.bomfim.eleicoes.tse.model.TseOffice;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -131,115 +132,91 @@ public class CollectorService {
         log.warn("Erro ao buscar progresso BR (mantendo último estado): {}", e.getMessage());
       }
 
+      // Cadastro Exterior (ZZ) e demais municípios do mun-cm (quando disponível).
+      try {
+        List<TseCity> cities = adapter.getCities(progressCode);
+        if (!cities.isEmpty()) {
+          List<TseCity> exterior =
+              cities.stream().filter(c -> BrazilianStates.isExterior(c.stateCode())).toList();
+          if (!exterior.isEmpty()) {
+            store.upsertCities(exterior);
+          }
+          stats.record(0, "ok");
+        }
+      } catch (TseClient.NotFoundException e) {
+        stats.record(0, "not-found");
+      } catch (TseClient.UnavailableException | TsePayloadException e) {
+        stats.record(0, "error");
+        log.debug("mun-cm indisponível: {}", e.getMessage());
+      }
+
       Optional<TseOffice> presidente =
           config.offices().stream()
               .filter(o -> "1".equals(o.code()) || "presidente".equals(o.slug()))
               .findFirst();
-      Optional<Office> dbOffice = officeRepository.findByRoundIdAndSlug(round.getId(), "presidente");
+      Optional<Office> dbPresidente =
+          officeRepository.findByRoundIdAndSlug(round.getId(), "presidente");
 
-      if (presidente.isPresent() && dbOffice.isPresent()) {
+      if (presidente.isPresent() && dbPresidente.isPresent()) {
         TseOffice tseOffice = presidente.get();
-        Office office = dbOffice.get();
-        try {
-          Fetched<AreaResultView> result = adapter.getCountryResult(tseOffice);
-          if (result.changed()) {
-            stats.record(0, "ok");
-            if (store.applyResult(round.getId(), office, result.data(), result.provenance(), Instant.now())) {
-              changed = true;
-            }
-          } else {
-            stats.record(0, "not-modified");
-          }
-        } catch (TseClient.NotFoundException e) {
-          stats.record(0, "not-found");
+        Office office = dbPresidente.get();
+        CollectOutcome br = pullCountryResult(round, office, tseOffice, stats);
+        if (br == CollectOutcome.STORED) {
+          changed = true;
+        } else if (br == CollectOutcome.ERROR) {
           degraded = true;
-        } catch (TseClient.UnavailableException | TsePayloadException e) {
-          stats.record(0, "error");
-          degraded = true;
-          log.warn("Erro ao buscar resultado BR (mantendo último estado): {}", e.getMessage());
         }
 
-        for (BrazilianStates.State state : BrazilianStates.ALL) {
-          try {
-            Fetched<AreaResultView> stateResult = adapter.getStateResult(tseOffice, state.code());
-            if (stateResult.changed()) {
-              stats.record(0, "ok");
-              if (store.applyResult(
-                  round.getId(), office, stateResult.data(), stateResult.provenance(), Instant.now())) {
-                changed = true;
-              }
-            } else {
-              stats.record(0, "not-modified");
-            }
-          } catch (TseClient.NotFoundException e) {
-            stats.record(0, "not-found");
-          } catch (TseClient.UnavailableException | TsePayloadException e) {
-            stats.record(0, "error");
+        // UFs domésticas + Exterior (ZZ) — presidente.
+        for (BrazilianStates.State state : BrazilianStates.WITH_EXTERIOR) {
+          CollectOutcome out = pullStateResult(round, office, tseOffice, state.code(), stats);
+          if (out == CollectOutcome.STORED) {
+            changed = true;
+          } else if (out == CollectOutcome.ERROR) {
             degraded = true;
-            log.debug("Erro resultado UF {}: {}", state.code(), e.getMessage());
           }
+        }
+
+        // Países/cidades do Exterior: progresso + resultado presidente.
+        CollectOutcome exterior = pullExteriorCities(round, office, tseOffice, progressCode, stats);
+        if (exterior == CollectOutcome.STORED) {
+          changed = true;
+        } else if (exterior == CollectOutcome.ERROR) {
+          degraded = true;
         }
 
         if (properties.isCollectCityResults()) {
-          List<City> capitals = cityRepository.findByProviderAndCapitalTrueOrderByStateCodeAsc("TSE");
-          Set<String> capitalKeys = new HashSet<>();
-          for (City c : capitals) {
-            capitalKeys.add(c.getStateCode().toLowerCase(Locale.ROOT) + "-" + c.getProviderId());
-          }
-          Set<String> progressDone = new HashSet<>();
-          for (City capital : capitals) {
-            String uf = capital.getStateCode();
-            if (progressDone.add(uf)) {
-              try {
-                Fetched<StateProgress> sp = adapter.getStateProgress(progressCode, uf);
-                if (sp.changed()) {
-                  stats.record(0, "ok");
-                  List<AreaProgressView> cityProgress =
-                      sp.data().cities().stream()
-                          .filter(p -> capitalKeys.contains(p.areaKey()))
-                          .toList();
-                  if (!cityProgress.isEmpty()) {
-                    int n =
-                        store.applyProgress(
-                            round.getId(), cityProgress, sp.provenance(), Instant.now());
-                    if (n > 0) {
-                      changed = true;
-                    }
-                  }
-                } else {
-                  stats.record(0, "not-modified");
-                }
-              } catch (TseClient.NotFoundException e) {
-                stats.record(0, "not-found");
-              } catch (TseClient.UnavailableException | TsePayloadException e) {
-                stats.record(0, "error");
-                log.debug("Erro progresso cidades {}: {}", uf, e.getMessage());
-              }
-            }
-
-            try {
-              Fetched<AreaResultView> cityResult =
-                  adapter.getCityResult(tseOffice, uf, capital.getProviderId());
-              if (cityResult.changed()) {
-                stats.record(0, "ok");
-                if (store.applyResult(
-                    round.getId(), office, cityResult.data(), cityResult.provenance(), Instant.now())) {
-                  changed = true;
-                }
-              } else {
-                stats.record(0, "not-modified");
-              }
-            } catch (TseClient.NotFoundException e) {
-              stats.record(0, "not-found");
-            } catch (TseClient.UnavailableException | TsePayloadException e) {
-              stats.record(0, "error");
-              log.debug("Erro resultado capital {}-{}: {}", uf, capital.getProviderId(), e.getMessage());
-            }
+          CollectOutcome capitals =
+              pullCapitalCities(round, office, tseOffice, progressCode, stats);
+          if (capitals == CollectOutcome.STORED) {
+            changed = true;
+          } else if (capitals == CollectOutcome.ERROR) {
+            degraded = true;
           }
         }
       } else {
         log.warn("Cargo presidente não encontrado no config TSE ou no banco");
         degraded = true;
+      }
+
+      // Governador por UF (necessário para Comparar / detalhe estadual).
+      Optional<TseOffice> governador =
+          config.offices().stream()
+              .filter(o -> "3".equals(o.code()) || "governador".equals(o.slug()))
+              .findFirst();
+      Optional<Office> dbGovernador =
+          officeRepository.findByRoundIdAndSlug(round.getId(), "governador");
+      if (governador.isPresent() && dbGovernador.isPresent()) {
+        TseOffice tseGov = governador.get();
+        Office dbGov = dbGovernador.get();
+        for (BrazilianStates.State state : BrazilianStates.DOMESTIC) {
+          CollectOutcome out = pullStateResult(round, dbGov, tseGov, state.code(), stats);
+          if (out == CollectOutcome.STORED) {
+            changed = true;
+          } else if (out == CollectOutcome.ERROR) {
+            degraded = true;
+          }
+        }
       }
 
       status = degraded ? "degraded" : "ok";
@@ -255,5 +232,193 @@ public class CollectorService {
       store.finishCycle(cycle, "failed", fatal, stats);
       return "failed";
     }
+  }
+
+  private enum CollectOutcome {
+    STORED,
+    UNCHANGED,
+    MISSING,
+    ERROR
+  }
+
+  private CollectOutcome pullCountryResult(
+      ElectionRound round, Office office, TseOffice tseOffice, CollectorStore.CycleStats stats) {
+    try {
+      Fetched<AreaResultView> result = adapter.getCountryResult(tseOffice);
+      if (result.changed()) {
+        stats.record(0, "ok");
+        boolean stored =
+            store.applyResult(
+                round.getId(), office, result.data(), result.provenance(), Instant.now());
+        return stored ? CollectOutcome.STORED : CollectOutcome.UNCHANGED;
+      }
+      stats.record(0, "not-modified");
+      return CollectOutcome.UNCHANGED;
+    } catch (TseClient.NotFoundException e) {
+      stats.record(0, "not-found");
+      return CollectOutcome.MISSING;
+    } catch (TseClient.UnavailableException | TsePayloadException e) {
+      stats.record(0, "error");
+      log.warn("Erro ao buscar resultado BR (mantendo último estado): {}", e.getMessage());
+      return CollectOutcome.ERROR;
+    }
+  }
+
+  private CollectOutcome pullStateResult(
+      ElectionRound round,
+      Office office,
+      TseOffice tseOffice,
+      String uf,
+      CollectorStore.CycleStats stats) {
+    try {
+      Fetched<AreaResultView> stateResult = adapter.getStateResult(tseOffice, uf);
+      if (stateResult.changed()) {
+        stats.record(0, "ok");
+        boolean stored =
+            store.applyResult(
+                round.getId(), office, stateResult.data(), stateResult.provenance(), Instant.now());
+        return stored ? CollectOutcome.STORED : CollectOutcome.UNCHANGED;
+      }
+      stats.record(0, "not-modified");
+      return CollectOutcome.UNCHANGED;
+    } catch (TseClient.NotFoundException e) {
+      stats.record(0, "not-found");
+      return CollectOutcome.MISSING;
+    } catch (TseClient.UnavailableException | TsePayloadException e) {
+      stats.record(0, "error");
+      log.debug("Erro resultado {} {}: {}", office.getSlug(), uf, e.getMessage());
+      return CollectOutcome.ERROR;
+    }
+  }
+
+  private CollectOutcome pullExteriorCities(
+      ElectionRound round,
+      Office office,
+      TseOffice tseOffice,
+      String progressCode,
+      CollectorStore.CycleStats stats) {
+    boolean stored = false;
+    boolean error = false;
+    try {
+      Fetched<StateProgress> sp = adapter.getStateProgress(progressCode, "ZZ");
+      if (sp.changed()) {
+        stats.record(0, "ok");
+        if (!sp.data().cities().isEmpty()) {
+          int n =
+              store.applyProgress(
+                  round.getId(), sp.data().cities(), sp.provenance(), Instant.now());
+          if (n > 0) {
+            stored = true;
+          }
+        }
+      } else {
+        stats.record(0, "not-modified");
+      }
+    } catch (TseClient.NotFoundException e) {
+      stats.record(0, "not-found");
+    } catch (TseClient.UnavailableException | TsePayloadException e) {
+      stats.record(0, "error");
+      error = true;
+      log.debug("Erro progresso Exterior: {}", e.getMessage());
+    }
+
+    List<City> abroad = cityRepository.findByProviderAndStateCodeOrderByNameAsc("TSE", "ZZ");
+    for (City city : abroad) {
+      try {
+        Fetched<AreaResultView> cityResult =
+            adapter.getCityResult(tseOffice, "ZZ", city.getProviderId());
+        if (cityResult.changed()) {
+          stats.record(0, "ok");
+          if (store.applyResult(
+              round.getId(), office, cityResult.data(), cityResult.provenance(), Instant.now())) {
+            stored = true;
+          }
+        } else {
+          stats.record(0, "not-modified");
+        }
+      } catch (TseClient.NotFoundException e) {
+        stats.record(0, "not-found");
+      } catch (TseClient.UnavailableException | TsePayloadException e) {
+        stats.record(0, "error");
+        error = true;
+        log.debug("Erro resultado Exterior {}: {}", city.getProviderId(), e.getMessage());
+      }
+    }
+    if (stored) {
+      return CollectOutcome.STORED;
+    }
+    return error ? CollectOutcome.ERROR : CollectOutcome.UNCHANGED;
+  }
+
+  private CollectOutcome pullCapitalCities(
+      ElectionRound round,
+      Office office,
+      TseOffice tseOffice,
+      String progressCode,
+      CollectorStore.CycleStats stats) {
+    boolean stored = false;
+    boolean error = false;
+    List<City> capitals = cityRepository.findByProviderAndCapitalTrueOrderByStateCodeAsc("TSE");
+    Set<String> capitalKeys = new HashSet<>();
+    for (City c : capitals) {
+      capitalKeys.add(c.getStateCode().toLowerCase(Locale.ROOT) + "-" + c.getProviderId());
+    }
+    Set<String> progressDone = new HashSet<>();
+    for (City capital : capitals) {
+      String uf = capital.getStateCode();
+      if (BrazilianStates.isExterior(uf)) {
+        continue;
+      }
+      if (progressDone.add(uf)) {
+        try {
+          Fetched<StateProgress> sp = adapter.getStateProgress(progressCode, uf);
+          if (sp.changed()) {
+            stats.record(0, "ok");
+            List<AreaProgressView> cityProgress =
+                sp.data().cities().stream().filter(p -> capitalKeys.contains(p.areaKey())).toList();
+            if (!cityProgress.isEmpty()) {
+              int n =
+                  store.applyProgress(
+                      round.getId(), cityProgress, sp.provenance(), Instant.now());
+              if (n > 0) {
+                stored = true;
+              }
+            }
+          } else {
+            stats.record(0, "not-modified");
+          }
+        } catch (TseClient.NotFoundException e) {
+          stats.record(0, "not-found");
+        } catch (TseClient.UnavailableException | TsePayloadException e) {
+          stats.record(0, "error");
+          error = true;
+          log.debug("Erro progresso cidades {}: {}", uf, e.getMessage());
+        }
+      }
+
+      try {
+        Fetched<AreaResultView> cityResult =
+            adapter.getCityResult(tseOffice, uf, capital.getProviderId());
+        if (cityResult.changed()) {
+          stats.record(0, "ok");
+          if (store.applyResult(
+              round.getId(), office, cityResult.data(), cityResult.provenance(), Instant.now())) {
+            stored = true;
+          }
+        } else {
+          stats.record(0, "not-modified");
+        }
+      } catch (TseClient.NotFoundException e) {
+        stats.record(0, "not-found");
+      } catch (TseClient.UnavailableException | TsePayloadException e) {
+        stats.record(0, "error");
+        error = true;
+        log.debug("Erro resultado capital {}-{}: {}", uf, capital.getProviderId(), e.getMessage());
+      }
+    }
+    if (stored) {
+      return CollectOutcome.STORED;
+    }
+    return error ? CollectOutcome.ERROR : CollectOutcome.UNCHANGED;
   }
 }

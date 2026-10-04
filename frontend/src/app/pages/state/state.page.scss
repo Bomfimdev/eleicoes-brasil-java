@@ -80,13 +80,30 @@ li:last-child {
 }
 
 .cities a {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 1fr auto;
   gap: 0.75rem;
+  align-items: center;
   padding: 0.75rem 1rem;
   text-decoration: none;
   border-bottom: 1px solid var(--line);
   color: inherit;
+}
+
+.cities .meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.1rem;
+  font-size: 0.8rem;
+}
+
+.cities .leader {
+  color: var(--ink-2);
+  max-width: 9rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .cities li:last-child a {

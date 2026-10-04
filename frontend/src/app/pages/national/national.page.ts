@@ -6,7 +6,7 @@ import { EvolutionChartComponent } from '../../components/evolution-chart/evolut
 import { ApiService } from '../../core/api.service';
 import { fmtClock, fmtInt, fmtPct } from '../../core/format';
 import { LiveSessionService } from '../../core/live-session.service';
-import { SeriesDto } from '../../core/models';
+import { SeriesDto, StateRowDto } from '../../core/models';
 
 @Component({
   selector: 'app-national-page',
@@ -64,5 +64,9 @@ export class NationalPage implements OnInit, OnDestroy {
     } catch {
       return isoDate;
     }
+  }
+
+  mapStates(states: StateRowDto[]): StateRowDto[] {
+    return states.filter((s) => s.uf !== 'ZZ');
   }
 }

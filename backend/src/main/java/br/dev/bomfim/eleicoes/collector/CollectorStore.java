@@ -6,6 +6,8 @@ import br.dev.bomfim.eleicoes.domain.AreaResult;
 import br.dev.bomfim.eleicoes.domain.AreaResultRepository;
 import br.dev.bomfim.eleicoes.domain.Candidate;
 import br.dev.bomfim.eleicoes.domain.CandidateRepository;
+import br.dev.bomfim.eleicoes.domain.City;
+import br.dev.bomfim.eleicoes.domain.CityRepository;
 import br.dev.bomfim.eleicoes.domain.CollectorCycle;
 import br.dev.bomfim.eleicoes.domain.CollectorCycleRepository;
 import br.dev.bomfim.eleicoes.domain.ElectionRound;
@@ -26,6 +28,7 @@ import br.dev.bomfim.eleicoes.tse.model.CandidateResult;
 import br.dev.bomfim.eleicoes.tse.model.CountingProgress;
 import br.dev.bomfim.eleicoes.tse.model.PartyResult;
 import br.dev.bomfim.eleicoes.tse.model.Provenance;
+import br.dev.bomfim.eleicoes.tse.model.TseCity;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.json.JsonMapper;
 import java.time.Instant;
@@ -49,6 +52,7 @@ public class CollectorStore {
   private final CollectorCycleRepository cycleRepository;
   private final CandidateRepository candidateRepository;
   private final PartyRepository partyRepository;
+  private final CityRepository cityRepository;
   private final JsonMapper mapper;
 
   public CollectorStore(
@@ -61,6 +65,7 @@ public class CollectorStore {
       CollectorCycleRepository cycleRepository,
       CandidateRepository candidateRepository,
       PartyRepository partyRepository,
+      CityRepository cityRepository,
       JsonMapper mapper) {
     this.roundRepository = roundRepository;
     this.progressRepository = progressRepository;
@@ -71,6 +76,7 @@ public class CollectorStore {
     this.cycleRepository = cycleRepository;
     this.candidateRepository = candidateRepository;
     this.partyRepository = partyRepository;
+    this.cityRepository = cityRepository;
     this.mapper = mapper;
   }
 
@@ -313,6 +319,32 @@ public class CollectorStore {
     } catch (Exception e) {
       return null;
     }
+  }
+
+  /** Upsert de municípios/países do Exterior vindos do mun-cm. */
+  @Transactional
+  public int upsertCities(List<TseCity> cities) {
+    int n = 0;
+    for (TseCity src : cities) {
+      Optional<City> existing =
+          cityRepository.findByProviderAndStateCodeAndProviderId(
+              "TSE", src.stateCode(), src.providerId());
+      City row = existing.orElseGet(City::new);
+      if (row.getId() == null) {
+        row.setId(UUID.randomUUID());
+      }
+      row.setProvider("TSE");
+      row.setStateCode(src.stateCode());
+      row.setProviderId(src.providerId());
+      row.setIbgeCode(src.ibgeCode());
+      row.setName(src.name());
+      row.setSearchName(src.name().toLowerCase(Locale.ROOT));
+      row.setCapital(src.capital());
+      row.setZones(src.zones() == null ? new String[0] : src.zones().toArray(String[]::new));
+      cityRepository.save(row);
+      n++;
+    }
+    return n;
   }
 
   private String toJson(Object value) {

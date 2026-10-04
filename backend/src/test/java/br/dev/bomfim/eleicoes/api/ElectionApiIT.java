@@ -94,6 +94,12 @@ class ElectionApiIT {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.items[0].capital").value(true))
         .andExpect(jsonPath("$.items[0].code").value("71072"));
+
+    mockMvc
+        .perform(get("/api/elections/2026-1/states/ZZ"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.uf").value("ZZ"))
+        .andExpect(jsonPath("$.name").value("Exterior"));
   }
 
   @Test

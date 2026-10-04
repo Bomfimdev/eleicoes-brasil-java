@@ -48,6 +48,18 @@ class TseAdapter2026Test {
     assertThat(fetched.data().progress().sectionsCountedPct()).isNotNull();
     assertThat(fetched.data().progress().totalizedAt()).isNotNull();
     assertThat(fetched.provenance().checksum()).isNotBlank();
+    assertThat(fetched.data().states())
+        .extracting(s -> s.stateCode())
+        .contains("ZZ");
+  }
+
+  @Test
+  void loadsExteriorCitiesFromMunCm() {
+    adapter.getElectionConfig();
+    var cities = adapter.getCities("21270");
+    assertThat(cities).isNotEmpty();
+    assertThat(cities.stream().filter(c -> "ZZ".equals(c.stateCode())).map(c -> c.name()))
+        .contains("LISBOA", "BOSTON");
   }
 
   @Test

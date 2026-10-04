@@ -1,14 +1,18 @@
 package br.dev.bomfim.eleicoes.api;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-/** UFs domésticas (sem ZZ) para overview nacional. */
+/** UFs brasileiras + pseudo-UF ZZ (Exterior, só presidente). */
 public final class BrazilianStates {
 
   public record State(String code, String name, String region) {}
 
-  public static final List<State> ALL =
+  public static final State EXTERIOR = new State("ZZ", "Exterior", "EX");
+
+  /** 26 estados + DF (sem Exterior). */
+  public static final List<State> DOMESTIC =
       List.of(
           new State("AC", "Acre", "N"),
           new State("AL", "Alagoas", "NE"),
@@ -38,8 +42,20 @@ public final class BrazilianStates {
           new State("SE", "Sergipe", "NE"),
           new State("TO", "Tocantins", "N"));
 
+  /** Alias histórico: só UFs domésticas (mapa / calor). */
+  public static final List<State> ALL = DOMESTIC;
+
+  /** Domésticas + Exterior (ZZ). */
+  public static final List<State> WITH_EXTERIOR;
+
+  static {
+    List<State> all = new ArrayList<>(DOMESTIC);
+    all.add(EXTERIOR);
+    WITH_EXTERIOR = List.copyOf(all);
+  }
+
   private static final Map<String, State> BY_CODE =
-      ALL.stream().collect(java.util.stream.Collectors.toMap(State::code, s -> s));
+      WITH_EXTERIOR.stream().collect(java.util.stream.Collectors.toMap(State::code, s -> s));
 
   private BrazilianStates() {}
 
@@ -53,5 +69,13 @@ public final class BrazilianStates {
 
   public static boolean isValid(String uf) {
     return uf != null && BY_CODE.containsKey(uf.toUpperCase());
+  }
+
+  public static boolean isExterior(String uf) {
+    return uf != null && "ZZ".equalsIgnoreCase(uf);
+  }
+
+  public static boolean isDomestic(String uf) {
+    return isValid(uf) && !isExterior(uf);
   }
 }

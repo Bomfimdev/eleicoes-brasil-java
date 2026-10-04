@@ -173,6 +173,14 @@ ol li {
   font-size: 0.75rem;
 }
 
+.empty-cand {
+  margin: 0.75rem 0 0;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
 .sr-only {
   position: absolute;
   width: 1px;
