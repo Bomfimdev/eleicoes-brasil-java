@@ -91,6 +91,13 @@ export interface ResultDto {
   provenance: unknown;
 }
 
+export interface StateLeaderDto {
+  name: string | null;
+  party: string | null;
+  percent: number | null;
+  votes: number | null;
+}
+
 export interface StateRowDto {
   uf: string;
   name: string;
@@ -99,6 +106,8 @@ export interface StateRowDto {
   leaderName: string | null;
   leaderParty: string | null;
   leaderPercent: number | null;
+  presidentTop?: StateLeaderDto[];
+  governorTop?: StateLeaderDto[];
 }
 
 export interface OverviewDto {

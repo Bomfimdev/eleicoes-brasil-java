@@ -1,24 +1,85 @@
 @if (live.overview(); as o) {
   <header class="page-head">
     <h1>Estados</h1>
-    <p class="sub">Totalização e líderes por UF</p>
+    <p class="sub">Ordenados pela maior % apurada · passe o mouse para ver os líderes</p>
   </header>
 
   <app-brazil-map [states]="domestic()" [allowLeader]="!!o.headline" />
 
   <ul class="states">
     @for (s of domestic(); track s.uf) {
-      <li>
-        <a [routerLink]="['/estado', s.uf]">
+      <li
+        class="row"
+        [class.open]="openUf() === s.uf"
+        (pointerenter)="onEnter(s.uf)"
+        (pointerleave)="onLeave()"
+      >
+        <a
+          [routerLink]="['/estado', s.uf]"
+          (click)="onRowClick(s, $event)"
+        >
           <span class="uf">{{ s.uf }}</span>
           <span class="name">{{ s.name }}</span>
           <span class="meta">
             @if (s.leaderName) {
               <span class="leader">{{ s.leaderName }}</span>
             }
-            <span class="pct">{{ fmtPct(s.progress?.countedPct ?? null, 1) }}</span>
+            <span class="pct numeral">{{ fmtPct(s.progress?.countedPct ?? null, 1) }}</span>
           </span>
         </a>
+
+        @if (openUf() === s.uf && hasPanel(s)) {
+          <aside class="panel" role="dialog" [attr.aria-label]="'Líderes em ' + s.name">
+            <p class="panel-head">
+              <span>{{ s.uf }} · {{ s.name }}</span>
+              <span class="numeral">{{ fmtPct(s.progress?.countedPct ?? null, 1) }} apurado</span>
+            </p>
+
+            <div class="cols">
+              <section>
+                <h3>Presidente</h3>
+                @if (s.presidentTop?.length) {
+                  <ol>
+                    @for (c of s.presidentTop; track $index; let i = $index) {
+                      <li>
+                        <span class="rank">{{ i + 1 }}º</span>
+                        <span class="cand">
+                          <span class="cname">{{ c.name || '—' }}</span>
+                          <span class="party">{{ c.party || '—' }}</span>
+                        </span>
+                        <span class="numeral">{{ fmtPct(c.percent) }}</span>
+                      </li>
+                    }
+                  </ol>
+                } @else {
+                  <p class="empty">Aguardando votos</p>
+                }
+              </section>
+
+              <section>
+                <h3>Governador</h3>
+                @if (s.governorTop?.length) {
+                  <ol>
+                    @for (c of s.governorTop; track $index; let i = $index) {
+                      <li>
+                        <span class="rank">{{ i + 1 }}º</span>
+                        <span class="cand">
+                          <span class="cname">{{ c.name || '—' }}</span>
+                          <span class="party">{{ c.party || '—' }}</span>
+                        </span>
+                        <span class="numeral">{{ fmtPct(c.percent) }}</span>
+                      </li>
+                    }
+                  </ol>
+                } @else {
+                  <p class="empty">Aguardando votos</p>
+                }
+              </section>
+            </div>
+
+            <a class="more" [routerLink]="['/estado', s.uf]">Ver estado →</a>
+          </aside>
+        }
       </li>
     }
   </ul>
@@ -27,16 +88,51 @@
     <section class="exterior">
       <h2>Exterior</h2>
       <p class="sub">Votos de brasileiros no exterior (presidente)</p>
-      <a class="zz-card" [routerLink]="['/estado', 'ZZ']">
-        <span class="uf">ZZ</span>
-        <span class="name">{{ zz.name }}</span>
-        <span class="meta">
-          @if (zz.leaderName) {
-            <span class="leader">{{ zz.leaderName }}</span>
-          }
-          <span class="pct">{{ fmtPct(zz.progress?.countedPct ?? null, 1) }}</span>
-        </span>
-      </a>
+      <div
+        class="zz-wrap"
+        [class.open]="openUf() === 'ZZ'"
+        (pointerenter)="onEnter('ZZ')"
+        (pointerleave)="onLeave()"
+      >
+        <a class="zz-card" [routerLink]="['/estado', 'ZZ']" (click)="onRowClick(zz, $event)">
+          <span class="uf">ZZ</span>
+          <span class="name">{{ zz.name }}</span>
+          <span class="meta">
+            @if (zz.leaderName) {
+              <span class="leader">{{ zz.leaderName }}</span>
+            }
+            <span class="pct numeral">{{ fmtPct(zz.progress?.countedPct ?? null, 1) }}</span>
+          </span>
+        </a>
+        @if (openUf() === 'ZZ') {
+          <aside class="panel" role="dialog" aria-label="Líderes no Exterior">
+            <p class="panel-head">
+              <span>Exterior</span>
+              <span class="numeral">{{ fmtPct(zz.progress?.countedPct ?? null, 1) }} apurado</span>
+            </p>
+            <section>
+              <h3>Presidente</h3>
+              @if (zz.presidentTop?.length) {
+                <ol>
+                  @for (c of zz.presidentTop; track $index; let i = $index) {
+                    <li>
+                      <span class="rank">{{ i + 1 }}º</span>
+                      <span class="cand">
+                        <span class="cname">{{ c.name || '—' }}</span>
+                        <span class="party">{{ c.party || '—' }}</span>
+                      </span>
+                      <span class="numeral">{{ fmtPct(c.percent) }}</span>
+                    </li>
+                  }
+                </ol>
+              } @else {
+                <p class="empty">Aguardando votos</p>
+              }
+            </section>
+            <a class="more" routerLink="/estado/ZZ">Ver Exterior →</a>
+          </aside>
+        }
+      </div>
     </section>
   }
 } @else if (live.loading()) {

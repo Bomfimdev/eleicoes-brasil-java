@@ -17,6 +17,7 @@ import br.dev.bomfim.eleicoes.api.dto.RoundDetailDto;
 import br.dev.bomfim.eleicoes.api.dto.RoundSummaryDto;
 import br.dev.bomfim.eleicoes.api.dto.SeriesDto;
 import br.dev.bomfim.eleicoes.api.dto.StateDetailDto;
+import br.dev.bomfim.eleicoes.api.dto.StateLeaderDto;
 import br.dev.bomfim.eleicoes.api.dto.StateRowDto;
 import br.dev.bomfim.eleicoes.api.dto.TimelineAtDto;
 import br.dev.bomfim.eleicoes.api.dto.TimelineDto;
@@ -727,34 +728,78 @@ public class ElectionQueryService {
                 Collectors.toMap(
                     p -> p.getAreaKey().toUpperCase(Locale.ROOT), p -> p, (a, b) -> a));
 
-    Map<String, CandidateDto> leaders = new LinkedHashMap<>();
-    if (headlineOffice != null) {
-      List<AreaResult> stateResults =
-          resultRepository.findByRoundIdAndOfficeIdAndAreaType(
-              loaded.round().getId(), headlineOffice.getId(), "state");
-      for (AreaResult row : stateResults) {
-        CandidateDto top = topCandidate(row);
-        if (top != null && row.getStateCode() != null) {
-          leaders.put(row.getStateCode().toUpperCase(Locale.ROOT), top);
-        }
-      }
-    }
+    Map<String, List<StateLeaderDto>> presidentTops = topLeadersByState(loaded, headlineOffice, 3);
+    Office governor =
+        loaded.offices().stream()
+            .filter(o -> "governador".equals(o.getSlug()))
+            .findFirst()
+            .orElse(null);
+    Map<String, List<StateLeaderDto>> governorTops = topLeadersByState(loaded, governor, 3);
 
     List<StateRowDto> out = new ArrayList<>();
     for (BrazilianStates.State s : BrazilianStates.WITH_EXTERIOR) {
       AreaProgress p = byUf.get(s.code());
-      CandidateDto leader = leaders.get(s.code());
+      List<StateLeaderDto> pres = presidentTops.getOrDefault(s.code(), List.of());
+      List<StateLeaderDto> gov =
+          BrazilianStates.isExterior(s.code())
+              ? List.of()
+              : governorTops.getOrDefault(s.code(), List.of());
+      StateLeaderDto leader = pres.isEmpty() ? null : pres.get(0);
       out.add(
           new StateRowDto(
               s.code(),
               s.name(),
               s.region(),
               p == null ? null : toProgress(p),
-              leader == null ? null : leader.ballotName(),
-              leader == null ? null : leader.partyAbbreviation(),
-              leader == null ? null : leader.percent()));
+              leader == null ? null : leader.name(),
+              leader == null ? null : leader.party(),
+              leader == null ? null : leader.percent(),
+              pres,
+              gov));
     }
     return out;
+  }
+
+  private Map<String, List<StateLeaderDto>> topLeadersByState(
+      LoadedRound loaded, Office office, int limit) {
+    Map<String, List<StateLeaderDto>> out = new LinkedHashMap<>();
+    if (office == null) {
+      return out;
+    }
+    List<AreaResult> stateResults =
+        resultRepository.findByRoundIdAndOfficeIdAndAreaType(
+            loaded.round().getId(), office.getId(), "state");
+    for (AreaResult row : stateResults) {
+      if (row.getStateCode() == null) {
+        continue;
+      }
+      out.put(row.getStateCode().toUpperCase(Locale.ROOT), topLeaders(row, limit));
+    }
+    return out;
+  }
+
+  private List<StateLeaderDto> topLeaders(AreaResult row, int limit) {
+    JsonNode candNode = parseTree(row.getResult()).path("candidates");
+    if (!candNode.isArray()) {
+      return List.of();
+    }
+    List<StateLeaderDto> list = new ArrayList<>();
+    for (JsonNode c : candNode) {
+      Long votes = longOrNull(c, "votes");
+      if (votes == null || votes <= 0) {
+        continue;
+      }
+      String ballot = text(c, "ballotName");
+      String name = ballot != null && !ballot.isBlank() ? ballot : text(c, "name");
+      list.add(new StateLeaderDto(name, text(c, "partyAbbreviation"), doubleOrNull(c, "percent"), votes));
+    }
+    list.sort(
+        Comparator.comparing((StateLeaderDto l) -> l.votes() == null ? Long.MIN_VALUE : l.votes())
+            .reversed());
+    if (list.size() <= limit) {
+      return List.copyOf(list);
+    }
+    return List.copyOf(list.subList(0, limit));
   }
 
   private Office resolveOffice(LoadedRound loaded, String officeSlug) {
