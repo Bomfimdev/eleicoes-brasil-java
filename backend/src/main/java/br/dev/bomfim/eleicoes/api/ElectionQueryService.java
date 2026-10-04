@@ -420,65 +420,12 @@ public class ElectionQueryService {
           continue;
         }
         BrazilianStates.State meta = BrazilianStates.require(row.getStateCode());
-        JsonNode root = parseTree(row.getResult());
-        JsonNode candNode = root.path("candidates");
+        JsonNode candNode = parseTree(row.getResult()).path("candidates");
         if (!candNode.isArray() || candNode.isEmpty()) {
           continue;
         }
-        List<JsonNode> ranked = rankedCandidates(candNode);
-        String md = text(root, "mathematicallyDecided");
-        boolean mathElected = "elected".equalsIgnoreCase(md);
-        boolean runoff = "runoff".equalsIgnoreCase(md);
-        boolean finalResult = root.path("finalResult").asBoolean(false);
-
-        if ("governador".equals(officeSlug)) {
-          // 2º turno: ainda não há eleito.
-          if (runoff) {
-            continue;
-          }
-          JsonNode top = ranked.get(0);
-          String label = electedLabel(top);
-          if (label == null && (mathElected || finalResult)) {
-            label = "Definido";
-          }
-          Double pct = doubleOrNull(top, "percent");
-          if (label == null && pct != null && pct > 50.0) {
-            label = "Definido";
-          }
-          if (label != null) {
-            people.add(toElectedPerson(meta, top, label));
-          }
-          continue;
-        }
-
-        if ("senador".equals(officeSlug)) {
-          Integer seats = intOrNull(root, "seats");
-          int take = seats == null || seats < 1 ? 2 : seats;
-          int added = 0;
-          for (JsonNode c : ranked) {
-            String label = electedLabel(c);
-            Double pct = doubleOrNull(c, "percent");
-            // Flag TSE, md=e / final, ou >50% (segura pelo menos uma vaga).
-            if (label == null && (mathElected || finalResult) && added < take) {
-              label = "Definido";
-            }
-            if (label == null && pct != null && pct > 50.0) {
-              label = "Definido";
-            }
-            if (label == null) {
-              continue;
-            }
-            people.add(toElectedPerson(meta, c, label));
-            added++;
-            if (added >= take) {
-              break;
-            }
-          }
-          continue;
-        }
-
-        // Proporcional: só flag/status oficial do TSE. Vagas (vag) e % NÃO definem eleito.
-        for (JsonNode c : ranked) {
+        // Só tag oficial do TSE (e=s / status Eleito*). Sem % , md ou vag.
+        for (JsonNode c : rankedCandidates(candNode)) {
           String label = electedLabel(c);
           if (label != null) {
             people.add(toElectedPerson(meta, c, label));
@@ -498,7 +445,7 @@ public class ElectionQueryService {
 
   private static final Pattern ELECTED_STATUS =
       Pattern.compile(
-          "^(eleito|eleito por qp|eleito por m[eé]dia|2[ºo°] turno)$",
+          "^(eleito|eleito por qp|eleito por m[eé]dia)$",
           Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
 
   private static String electedLabel(JsonNode c) {
