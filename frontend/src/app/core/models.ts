@@ -210,27 +210,6 @@ export interface CompareDto {
   }[];
 }
 
-export interface ElectedPersonDto {
-  uf: string;
-  stateName: string;
-  name: string | null;
-  party: string | null;
-  percent: number | null;
-  votes: number | null;
-  status: string | null;
-}
-
-export interface ElectedOfficeGroupDto {
-  officeSlug: string;
-  officeName: string;
-  count: number;
-  people: ElectedPersonDto[];
-}
-
-export interface ElectedDto {
-  offices: ElectedOfficeGroupDto[];
-}
-
 export interface SeriesDto {
   office: OfficeDto;
   areaKey: string;

@@ -6,7 +6,6 @@ import {
   CityDetailDto,
   CityPageDto,
   CompareDto,
-  ElectedDto,
   ElectionSummary,
   OperationsDto,
   OverviewDto,
@@ -73,13 +72,6 @@ export class ApiService {
     return this.http.get<CompareDto>(
       `${this.base}/api/elections/${roundSlug}/compare?${params}`,
     );
-  }
-
-  elected(roundSlug: string, office?: string): Observable<ElectedDto> {
-    const params = new URLSearchParams();
-    if (office) params.set('office', office);
-    const q = params.toString() ? `?${params}` : '';
-    return this.http.get<ElectedDto>(`${this.base}/api/elections/${roundSlug}/elected${q}`);
   }
 
   series(roundSlug: string, office: string, area = 'br'): Observable<SeriesDto> {
