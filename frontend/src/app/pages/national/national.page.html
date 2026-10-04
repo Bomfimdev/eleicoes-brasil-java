@@ -14,22 +14,52 @@
 
   <section class="progress-block">
     <h2>Apuração Brasil</h2>
-    <div
-      class="bar"
-      role="progressbar"
-      [attr.aria-valuenow]="o.progress?.countedPct ?? null"
-      aria-valuemin="0"
-      aria-valuemax="100"
-    >
-      <div class="fill" [style.width.%]="o.progress?.countedPct ?? 0"></div>
+    <div class="dual-pct">
+      <div class="pct-card">
+        <p class="pct-label">Seções totalizadas</p>
+        <p class="pct numeral">{{ fmtPct(o.progress?.countedPct ?? null) }}</p>
+        <div
+          class="bar"
+          role="progressbar"
+          aria-label="Percentual de seções totalizadas no Brasil"
+          [attr.aria-valuenow]="o.progress?.countedPct ?? null"
+          aria-valuemin="0"
+          aria-valuemax="100"
+        >
+          <div class="fill" [style.width.%]="o.progress?.countedPct ?? 0"></div>
+        </div>
+        <p class="meta">acompanhamento TSE · comparecimento {{ fmtInt(o.progress?.turnout ?? null) }}</p>
+      </div>
+
+      <div class="pct-card">
+        <p class="pct-label">Presidente</p>
+        <p class="pct numeral">{{ fmtPct(o.headline?.countedPct ?? null) }}</p>
+        <div
+          class="bar bar-office"
+          role="progressbar"
+          aria-label="Percentual apurado do resultado de presidente"
+          [attr.aria-valuenow]="o.headline?.countedPct ?? null"
+          aria-valuemin="0"
+          aria-valuemax="100"
+        >
+          <div class="fill" [style.width.%]="o.headline?.countedPct ?? 0"></div>
+        </div>
+        <p class="meta">resultado do cargo no TSE</p>
+      </div>
     </div>
-    <p class="pct numeral">{{ fmtPct(o.progress?.countedPct ?? null) }}</p>
-    <p class="meta">das seções · comparecimento {{ fmtInt(o.progress?.turnout ?? null) }}</p>
+    <p class="note">
+      São arquivos diferentes do TSE: o % de seções atualiza antes; o % do Presidente pode atrasar.
+    </p>
   </section>
 
   <section class="headline">
     <h2>{{ o.headline?.officeName ?? 'Presidente' }}</h2>
     @if (o.headline; as h) {
+      @if (h.countedPct != null) {
+        <p class="office-pct meta">
+          Placar com {{ fmtPct(h.countedPct) }} do resultado de presidente apurado
+        </p>
+      }
       @if (h.candidates.length === 0) {
         <p class="empty">Aguardando divulgação de votos.</p>
       } @else {

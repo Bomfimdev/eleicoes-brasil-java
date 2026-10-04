@@ -51,12 +51,41 @@ h2 {
   color: var(--muted);
 }
 
+.dual-pct {
+  display: grid;
+  gap: 0.85rem;
+}
+
+@media (min-width: 640px) {
+  .dual-pct {
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+}
+
+.pct-card {
+  padding: 0.85rem 0.95rem 0.9rem;
+  border: 1px solid var(--line);
+  border-radius: 0.65rem;
+  background: var(--surface);
+}
+
+.pct-label {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 650;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
 .bar {
   height: 0.55rem;
   background: var(--surface-2);
   border-radius: 999px;
   overflow: hidden;
   border: 1px solid var(--line);
+  margin-top: 0.55rem;
 }
 
 .fill {
@@ -66,15 +95,30 @@ h2 {
   transition: width 0.6s cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 
+.bar-office .fill {
+  background: linear-gradient(90deg, color-mix(in srgb, var(--info) 55%, var(--live)), var(--info));
+}
+
 .pct {
-  margin: 0.65rem 0 0.15rem;
-  font-size: 1.85rem;
+  margin: 0.4rem 0 0;
+  font-size: 1.7rem;
   font-weight: 650;
   letter-spacing: -0.02em;
 }
 
 .numeral {
   font-stretch: 112%;
+}
+
+.note {
+  margin: 0.75rem 0 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.office-pct {
+  margin: -0.35rem 0 0.75rem;
 }
 
 .meta,
