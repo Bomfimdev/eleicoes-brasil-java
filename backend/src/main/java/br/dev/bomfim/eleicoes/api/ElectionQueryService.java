@@ -47,11 +47,13 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import org.springframework.data.domain.PageRequest;
@@ -419,30 +421,98 @@ public class ElectionQueryService {
           continue;
         }
         BrazilianStates.State meta = BrazilianStates.require(row.getStateCode());
-        JsonNode candNode = parseTree(row.getResult()).path("candidates");
-        if (!candNode.isArray()) {
+        JsonNode root = parseTree(row.getResult());
+        JsonNode candNode = root.path("candidates");
+        if (!candNode.isArray() || candNode.isEmpty()) {
           continue;
         }
-        for (JsonNode c : candNode) {
-          Boolean elected = boolOrNull(c, "elected");
-          String status = text(c, "status");
-          boolean isElected =
-              Boolean.TRUE.equals(elected)
-                  || (status != null && status.toLowerCase(Locale.ROOT).contains("eleito"));
-          if (!isElected) {
+        List<JsonNode> ranked = rankedCandidates(candNode);
+        String md = text(root, "mathematicallyDecided");
+        boolean mathElected = "elected".equalsIgnoreCase(md);
+        boolean runoff = "runoff".equalsIgnoreCase(md);
+        boolean finalResult = root.path("finalResult").asBoolean(false);
+
+        if ("governador".equals(officeSlug)) {
+          // 2º turno: ainda não há eleito.
+          if (runoff) {
             continue;
           }
-          String ballot = text(c, "ballotName");
-          String name = ballot != null && !ballot.isBlank() ? ballot : text(c, "name");
-          people.add(
-              new ElectedDto.ElectedPersonDto(
-                  meta.code(),
-                  meta.name(),
-                  name,
-                  text(c, "partyAbbreviation"),
-                  doubleOrNull(c, "percent"),
-                  longOrNull(c, "votes"),
-                  status));
+          JsonNode top = ranked.get(0);
+          String label = electedLabel(top);
+          if (label == null && (mathElected || finalResult)) {
+            label = "Definido";
+          }
+          Double pct = doubleOrNull(top, "percent");
+          if (label == null && pct != null && pct > 50.0) {
+            label = "Definido";
+          }
+          if (label != null) {
+            people.add(toElectedPerson(meta, top, label));
+          }
+          continue;
+        }
+
+        if ("senador".equals(officeSlug)) {
+          Integer seats = intOrNull(root, "seats");
+          int take = seats == null || seats < 1 ? 2 : seats;
+          int added = 0;
+          for (JsonNode c : ranked) {
+            String label = electedLabel(c);
+            Double pct = doubleOrNull(c, "percent");
+            // Flag TSE, md=e / final, ou >50% (segura pelo menos uma vaga).
+            if (label == null && (mathElected || finalResult) && added < take) {
+              label = "Definido";
+            }
+            if (label == null && pct != null && pct > 50.0) {
+              label = "Definido";
+            }
+            if (label == null) {
+              continue;
+            }
+            people.add(toElectedPerson(meta, c, label));
+            added++;
+            if (added >= take) {
+              break;
+            }
+          }
+          continue;
+        }
+
+        // Proporcional: flag TSE + vagas do partido (vag). Não inventa só por %.
+        Set<String> seen = new HashSet<>();
+        for (JsonNode c : ranked) {
+          String label = electedLabel(c);
+          if (label != null) {
+            people.add(toElectedPerson(meta, c, label));
+            seen.add(candidateKey(c));
+          }
+        }
+        JsonNode parties = root.path("parties");
+        if (parties.isArray()) {
+          for (JsonNode party : parties) {
+            Integer partySeats = intOrNull(party, "seats");
+            if (partySeats == null || partySeats < 1) {
+              continue;
+            }
+            String partyNumber = text(party, "number");
+            int taken = 0;
+            for (JsonNode c : ranked) {
+              if (taken >= partySeats) {
+                break;
+              }
+              if (partyNumber != null && !partyNumber.equals(text(c, "partyNumber"))) {
+                continue;
+              }
+              String key = candidateKey(c);
+              if (seen.contains(key)) {
+                taken++;
+                continue;
+              }
+              people.add(toElectedPerson(meta, c, "Definido"));
+              seen.add(key);
+              taken++;
+            }
+          }
         }
       }
       people.sort(
@@ -454,6 +524,51 @@ public class ElectionQueryService {
           new ElectedDto.OfficeGroupDto(office.getSlug(), office.getName(), people.size(), people));
     }
     return new ElectedDto(groups);
+  }
+
+  private static String electedLabel(JsonNode c) {
+    Boolean elected = boolOrNull(c, "elected");
+    String status = text(c, "status");
+    if (Boolean.TRUE.equals(elected)
+        || (status != null && status.toLowerCase(Locale.ROOT).contains("eleito"))) {
+      return status != null && !status.isBlank() ? status : "Eleito";
+    }
+    return null;
+  }
+
+  private static List<JsonNode> rankedCandidates(JsonNode candNode) {
+    List<JsonNode> ranked = new ArrayList<>();
+    candNode.forEach(ranked::add);
+    ranked.sort(
+        Comparator.comparing(
+                (JsonNode c) -> longOrNull(c, "votes") == null ? Long.MIN_VALUE : longOrNull(c, "votes"),
+                Comparator.reverseOrder())
+            .thenComparing(c -> text(c, "number") == null ? "" : text(c, "number")));
+    return ranked;
+  }
+
+  private static String candidateKey(JsonNode c) {
+    String key = text(c, "key");
+    if (key != null && !key.isBlank()) {
+      return key;
+    }
+    String number = text(c, "number");
+    String party = text(c, "partyNumber");
+    return (party == null ? "" : party) + "-" + (number == null ? "" : number);
+  }
+
+  private static ElectedDto.ElectedPersonDto toElectedPerson(
+      BrazilianStates.State meta, JsonNode c, String status) {
+    String ballot = text(c, "ballotName");
+    String name = ballot != null && !ballot.isBlank() ? ballot : text(c, "name");
+    return new ElectedDto.ElectedPersonDto(
+        meta.code(),
+        meta.name(),
+        name,
+        text(c, "partyAbbreviation"),
+        doubleOrNull(c, "percent"),
+        longOrNull(c, "votes"),
+        status);
   }
 
   @Transactional(readOnly = true)
@@ -1126,6 +1241,14 @@ public class ElectionQueryService {
       return null;
     }
     return v.asBoolean();
+  }
+
+  private static Integer intOrNull(JsonNode n, String field) {
+    JsonNode v = n.path(field);
+    if (v.isMissingNode() || v.isNull() || !v.isNumber()) {
+      return null;
+    }
+    return v.asInt();
   }
 
   private record LoadedRound(ElectionRound round, Election election, List<Office> offices) {}

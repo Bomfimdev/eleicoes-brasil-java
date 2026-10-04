@@ -81,11 +81,34 @@
   min-width: 0;
 }
 
+.top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.35rem;
+}
+
 .uf {
   font-family: var(--font-mono);
   font-size: 0.72rem;
   font-weight: 700;
   color: var(--live);
+}
+
+.badge {
+  font-size: 0.65rem;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.badge.ok {
+  color: var(--live);
+}
+
+.badge.soft {
+  color: color-mix(in srgb, var(--ink) 70%, var(--muted));
 }
 
 .name {

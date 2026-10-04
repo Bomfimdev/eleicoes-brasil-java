@@ -345,13 +345,18 @@ public class TseAdapter2026 {
           String partyNumber = TseNumbers.asCode(scalar(par, "n"));
           String abbr = cleanParty(text(par, "sg"));
           String partyName = text(par, "nm") == null ? "" : text(par, "nm");
+          Integer partySeats = TseNumbers.toInt(scalar(par, "vag"));
+          if (partySeats == null && "i".equals(text(agr, "tp"))) {
+            partySeats = TseNumbers.toInt(scalar(agr, "vag"));
+          }
           parties.add(
               new PartyResult(
                   partyNumber,
                   abbr,
                   partyName,
                   TseNumbers.toLong(scalar(par, "tvtn")),
-                  TseNumbers.toLong(scalar(par, "tvtl"))));
+                  TseNumbers.toLong(scalar(par, "tvtl")),
+                  partySeats));
           for (JsonNode c : par.path("cand")) {
             String number = TseNumbers.asCode(scalar(c, "n"));
             Object sq = scalar(c, "sqcand");
@@ -391,6 +396,9 @@ public class TseAdapter2026 {
     }
 
     CountingProgress progress = toProgress(file);
+    String md = text(file, "md");
+    String mathematicallyDecided =
+        "e".equalsIgnoreCase(md) ? "elected" : ("s".equalsIgnoreCase(md) ? "runoff" : null);
     return new AreaResultView(
         office.code(),
         areaKey,
@@ -410,6 +418,7 @@ public class TseAdapter2026 {
         parties,
         carg == null ? null : TseNumbers.toInt(scalar(carg, "nv")),
         finalResult,
+        mathematicallyDecided,
         publishable);
   }
 

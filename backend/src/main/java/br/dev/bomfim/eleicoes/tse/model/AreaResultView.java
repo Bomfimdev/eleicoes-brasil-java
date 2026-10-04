@@ -13,4 +13,6 @@ public record AreaResultView(
     List<PartyResult> parties,
     Integer seats,
     boolean finalResult,
+    /** TSE `md`: elected | runoff | null */
+    String mathematicallyDecided,
     Boolean votesPublishable) {}

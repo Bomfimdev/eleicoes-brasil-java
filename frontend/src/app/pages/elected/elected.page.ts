@@ -1,4 +1,5 @@
 import { Component, OnInit, computed, effect, inject, signal } from '@angular/core';
+import { Subscription } from 'rxjs';
 import { ApiService } from '../../core/api.service';
 import { fmtInt, fmtPct } from '../../core/format';
 import { LiveSessionService } from '../../core/live-session.service';
@@ -20,6 +21,7 @@ const TABS: { slug: string; label: string }[] = [
 export class ElectedPage implements OnInit {
   private readonly api = inject(ApiService);
   readonly live = inject(LiveSessionService);
+  private sub: Subscription | null = null;
 
   readonly tabs = TABS;
   readonly tab = signal(TABS[0].slug);
@@ -52,15 +54,19 @@ export class ElectedPage implements OnInit {
     effect(() => {
       const slug = this.live.roundSlug();
       this.live.version();
+      this.sub?.unsubscribe();
       this.loading.set(true);
-      this.api.elected(slug).subscribe({
+      this.error.set(null);
+      this.sub = this.api.elected(slug).subscribe({
         next: (d) => {
           this.data.set(d);
           this.loading.set(false);
           this.error.set(null);
         },
         error: () => {
-          this.error.set('Não foi possível carregar os eleitos.');
+          if (!this.data()) {
+            this.error.set('Não foi possível carregar os eleitos.');
+          }
           this.loading.set(false);
         },
       });
@@ -73,5 +79,13 @@ export class ElectedPage implements OnInit {
 
   setTab(slug: string): void {
     this.tab.set(slug);
+  }
+
+  statusLabel(status: string | null): string {
+    if (!status) return '';
+    const s = status.toLowerCase();
+    if (s.includes('eleito')) return 'Eleito';
+    if (s.includes('definido')) return 'Definido';
+    return status;
   }
 }
