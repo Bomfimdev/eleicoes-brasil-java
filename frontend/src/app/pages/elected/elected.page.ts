@@ -65,7 +65,7 @@ export class ElectedPage implements OnInit {
         },
         error: () => {
           if (!this.data()) {
-            this.error.set('Nao foi possivel carregar os eleitos.'); // sem acentos de proposito (encoding)
+            this.error.set('Nao foi possivel carregar os eleitos.');
           }
           this.loading.set(false);
         },
