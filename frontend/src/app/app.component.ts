@@ -34,7 +34,6 @@ export class AppComponent implements OnInit {
   readonly nav: NavItem[] = [
     { path: '/', label: 'Visão geral', exact: true },
     { path: '/estados', label: 'Estados' },
-    { path: '/eleitos', label: 'Eleitos' },
     { path: '/ao-vivo', label: 'Ao vivo' },
     { path: '/historico', label: 'Histórico' },
     { path: '/comparar', label: 'Comparar' },

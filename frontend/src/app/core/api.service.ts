@@ -6,7 +6,6 @@ import {
   CityDetailDto,
   CityPageDto,
   CompareDto,
-  ElectedDto,
   ElectionSummary,
   OperationsDto,
   OverviewDto,
