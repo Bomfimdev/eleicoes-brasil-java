@@ -24,30 +24,32 @@
   <p class="muted">Carregando…</p>
 } @else if (error() && !data()) {
   <p class="warn">{{ error() }}</p>
-} @else if (group(); as g) {
-  <p class="count">{{ g.count }} {{ g.count === 1 ? 'definido' : 'definidos' }}</p>
-
-  @if (g.people.length) {
-    <ul class="grid">
-      @for (p of g.people; track p.uf + '-' + p.name + '-' + $index) {
-        <li class="card">
-          <div class="top">
-            <span class="uf">{{ p.uf }}</span>
-            @if (statusLabel(p.status); as st) {
-              <span class="badge" [class.ok]="st === 'Eleito'" [class.soft]="st === 'Definido'">{{
-                st
-              }}</span>
-            }
-          </div>
-          <span class="name">{{ p.name || '—' }}</span>
-          <span class="party">{{ p.party || '—' }}</span>
-          <span class="pct numeral">{{ fmtPct(p.percent) }}</span>
-        </li>
-      }
-    </ul>
-  } @else {
-    <p class="empty">Ainda sem definidos neste cargo.</p>
-  }
 } @else {
-  <p class="empty">Aguardando dados deste cargo.</p>
+  @if (group(); as g) {
+    <p class="count">{{ g.count }} {{ g.count === 1 ? 'definido' : 'definidos' }}</p>
+
+    @if (g.people.length) {
+      <ul class="grid">
+        @for (p of g.people; track p.uf + '-' + p.name + '-' + $index) {
+          <li class="card">
+            <div class="top">
+              <span class="uf">{{ p.uf }}</span>
+              @if (statusLabel(p.status); as st) {
+                <span class="badge" [class.ok]="st === 'Eleito'" [class.soft]="st === 'Definido'">{{
+                  st
+                }}</span>
+              }
+            </div>
+            <span class="name">{{ p.name || '—' }}</span>
+            <span class="party">{{ p.party || '—' }}</span>
+            <span class="pct numeral">{{ fmtPct(p.percent) }}</span>
+          </li>
+        }
+      </ul>
+    } @else {
+      <p class="empty">Ainda sem definidos neste cargo.</p>
+    }
+  } @else {
+    <p class="empty">Aguardando dados deste cargo.</p>
+  }
 }
