@@ -448,13 +448,24 @@ public class ElectionQueryService {
           "^(eleito|eleito por qp|eleito por m[eé]dia)$",
           Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
 
+  private static final Pattern RUNOFF_STATUS =
+      Pattern.compile("^2[ºo°]\\s*turno$", Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
+
   private static String electedLabel(JsonNode c) {
-    Boolean elected = boolOrNull(c, "elected");
     String status = text(c, "status");
+    // No majoritário, o TSE marca e=s também para quem vai ao 2º turno.
+    if (status != null && RUNOFF_STATUS.matcher(status.trim()).matches()) {
+      return null;
+    }
+    Boolean elected = boolOrNull(c, "elected");
     // Nunca usar contains("eleito"): "Não eleito" também contém a substring.
     boolean statusElected = status != null && ELECTED_STATUS.matcher(status.trim()).matches();
-    if (Boolean.TRUE.equals(elected) || statusElected) {
-      return statusElected ? status.trim() : "Eleito";
+    if (statusElected) {
+      return status.trim();
+    }
+    // e=s sem status de 2º turno / com status vazio: eleito oficial.
+    if (Boolean.TRUE.equals(elected)) {
+      return "Eleito";
     }
     return null;
   }

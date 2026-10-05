@@ -95,8 +95,8 @@ export class ElectedPage implements OnInit {
   statusLabel(status: string | null): string {
     if (!status) return 'Eleito';
     const s = status.toLowerCase().normalize('NFD').replace(/\p{M}/gu, '');
-    if (/nao\s+eleito/.test(s)) return '';
-    if (s.includes('eleito')) return 'Eleito';
+    if (/nao\s+eleito/.test(s) || /2\s*o?\s*turno/.test(s)) return '';
+    if (/^eleito/.test(s) || s.includes('eleito por')) return 'Eleito';
     return status;
   }
 }
