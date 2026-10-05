@@ -1,7 +1,6 @@
 import { Routes } from '@angular/router';
 import { CityPage } from './pages/city/city.page';
 import { ComparePage } from './pages/compare/compare.page';
-import { ElectedPage } from './pages/elected/elected.page';
 import { HistoryPage } from './pages/history/history.page';
 import { LivePage } from './pages/live/live.page';
 import { NationalPage } from './pages/national/national.page';
@@ -11,7 +10,6 @@ import { StatesPage } from './pages/states/states.page';
 export const routes: Routes = [
   { path: '', component: NationalPage },
   { path: 'estados', component: StatesPage },
-  { path: 'eleitos', component: ElectedPage },
   { path: 'ao-vivo', component: LivePage },
   { path: 'historico', component: HistoryPage },
   { path: 'comparar', component: ComparePage },
