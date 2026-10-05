@@ -74,13 +74,6 @@ export class ApiService {
     );
   }
 
-  elected(roundSlug: string, office?: string): Observable<ElectedDto> {
-    const params = new URLSearchParams();
-    if (office) params.set('office', office);
-    const q = params.toString() ? `?${params}` : '';
-    return this.http.get<ElectedDto>(`${this.base}/api/elections/${roundSlug}/elected${q}`);
-  }
-
   series(roundSlug: string, office: string, area = 'br'): Observable<SeriesDto> {
     const params = new URLSearchParams({ office, area });
     return this.http.get<SeriesDto>(
